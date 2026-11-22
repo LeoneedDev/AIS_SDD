@@ -1,0 +1,43 @@
+# =====================================================================
+# spec/application/service-realization.yaml
+# Funkcionalita: schválenie 3D modelu zákazníkom
+#
+# Tento súbor je textová verzia diagramu "Service Realization Viewpoint".
+# Takmer všetko je prevzaté z modelu; tvoj text je iba pole "note".
+#
+# Mapovanie ID → prvok v modeli: pozri hlavičky actors-processes.yaml a components.yaml.
+# =====================================================================
+
+service_realization:
+  - business_service: "BS-3DModelingApproval"
+
+    # z modelu: BS-3DModelingApproval —Serving→ ACT-Clients
+    used_by_roles: ["ACT-Clients"]
+
+    # z modelu: BP-ModelThePart —Realization→ BS-3DModelingApproval
+    #           BP-HandleCustomPartOrder —Realization→ BS-3DModelingApproval (nadradený proces)
+    realized_by_business_processes:
+      - "BP-ModelThePart"
+
+    # z modelu (Application Usage): AS-ApprovingModel —Serving→ BP-ModelThePart
+    # ✍️ В модели тому же процессу служит и AS-ModellingOfComponent (EA #903).
+    # ✍️ Добавь его, только если он нужен для одобрения модели.
+    supported_by_application_services:
+      - "AS-ApprovingModel"
+
+    # z modelu (Service Realization): AC-ModelValidator —Realization→ AS-ApprovingModel
+    provided_by_components:
+      - "AC-ModelValidator"
+
+    # z modelu: AS-3DPrinting —Composition→ AS-ApprovingModel
+    #           (AS-ApprovingModel je časťou väčšej služby AS-3DPrinting)
+    part_of_application_service: "AS-3DPrinting"
+
+    requirements: ["R-001"]
+
+    # ✍️ По желанию: 1–2 предложения, ЗАЧЕМ эта цепочка — как приложение помогает
+    # ✍️ бизнес-сервису. Можно удалить, если нечего добавить.
+    note: ""
+
+    # Zdroj: diagram "Service Realization Viewpoint" (vytvorený skriptom),
+    #        "Aplication Usage Viewpoint", "Business Process Cooperation Viewpoint"

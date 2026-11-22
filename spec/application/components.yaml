@@ -1,0 +1,87 @@
+# =====================================================================
+# spec/application/components.yaml
+# Funkcionalita: schválenie 3D modelu zákazníkom
+#
+# ПОДСКАЗКИ: строки "# ✍️" — подсказки, после заполнения удали.
+#
+# Mapovanie ID → prvok v modeli Sparx EA (hlavné prvky z balíka "Application Colaborations")
+#   AC-ModelValidator       = Application Component "Model Validator"        EA #894
+#   AC-ModelingWorkspace    = Application Component "Modeling Workspace"     EA #895
+#   AC-Slicer               = Application Component "Slicer"                 EA #897
+#   AC-Notifier             = Application Component "Notifier"               EA #892
+#   AC-OrderOrchestrator    = Application Component "Order Orchestrator"     EA #891
+#   ACO-ModelPipeline       = Application Collaboration "Model Pipeline"     EA #1013
+#   AS-ApprovingModel       = Application Service "Aproving model"           EA #904
+#   AS-3DPrinting           = Application Service "3D printing"              EA #832
+#   AS-ModellingOfComponent = Application Service "Modelling of component"   EA #903
+#   AS-InformingCustomer    = Application Service "Informing and contacting customer" EA #907
+#
+# Hlavná karta je AC-ModelValidator. Ostatné sú partneri z interactions.yaml;
+# pri nich stačí jedna veta zodpovednosti.
+# =====================================================================
+
+application_components:
+  - id: "AC-ModelValidator"
+    name: "Model Validator"
+    # z modelu: ACO-ModelPipeline —Aggregation→ AC-ModelValidator
+    part_of_collaboration: "ACO-ModelPipeline"
+
+    # ✍️ ЗА ЧТО отвечает компонент — одна понятная ответственность.
+    # ✍️ Без классов, методов и фреймворков. «Komponent zodpovedá za …»
+    responsibility: >
+
+
+    # z modelu (Service Realization): AC-ModelValidator —Realization→ AS-ApprovingModel
+    #                                 AC-ModelValidator —Realization→ AS-3DPrinting
+    provides_services:
+      - "AS-ApprovingModel"
+      - "AS-3DPrinting"
+
+    # ✍️ Чьи сервисы ОН использует. В модели связей Serving к нему нет —
+    # ✍️ впиши после того, как решишь interactions.yaml (где он consumer).
+    uses_services: []
+
+    # ✍️ РЕШЕНИЕ: какими Data Objects он владеет (только он их меняет).
+    # ✍️ Кандидаты из модели: DO-3DModel (EA #965). Если решишь, что состояние
+    # ✍️ одобрения — отдельный Data Object, впиши его новый ID.
+    owns_data_objects: []
+
+    # ✍️ РЕШЕНИЕ: каким компонентам он МОЖЕТ передавать данные / кого вызывать.
+    # ✍️ В модели есть Flow от Model Validator к:
+    # ✍️   AC-Slicer, AC-Notifier, AC-OrderOrchestrator, AC-ModelingWorkspace
+    # ✍️ Оставь только те, что нужны для одобрения модели.
+    allowed_dependencies: []
+
+    requirements: ["R-001"]
+
+  # ----- partneri (stačí 1 veta zodpovednosti) -----
+  - id: "AC-ModelingWorkspace"
+    name: "Modeling Workspace"
+    part_of_collaboration: "ACO-ModelPipeline"
+    # ✍️ 1 предложение.
+    responsibility: ""
+    # z modelu: Realization → AS-ModellingOfComponent je len pri kópiách AS-IS/TO-BE;
+    #           hlavný prvok realizuje AS-3DPrinting
+    provides_services: ["AS-3DPrinting"]
+
+  - id: "AC-Slicer"
+    name: "Slicer"
+    part_of_collaboration: "ACO-ModelPipeline"
+    # ✍️ 1 предложение.
+    responsibility: ""
+    provides_services: ["AS-3DPrinting"]
+
+  - id: "AC-Notifier"
+    name: "Notifier"
+    # ✍️ 1 предложение.
+    responsibility: ""
+    # z modelu (Application Usage): AC-Notifier —Realization→ AS-InformingCustomer
+    provides_services: ["AS-InformingCustomer"]
+
+  - id: "AC-OrderOrchestrator"
+    name: "Order Orchestrator"
+    # ✍️ 1 предложение.
+    responsibility: ""
+    # ✍️ В модели основной элемент реализует "Online ordering & quoting" (EA #831).
+    # ✍️ Впиши ID этого сервиса, если он нужен в interactions.yaml.
+    provides_services: []

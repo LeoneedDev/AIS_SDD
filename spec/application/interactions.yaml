@@ -1,0 +1,99 @@
+# =====================================================================
+# spec/application/interactions.yaml
+# Funkcionalita: schválenie 3D modelu zákazníkom
+#
+# ПОДСКАЗКИ: строки "# ✍️" — подсказки, после заполнения удали.
+#
+# Odkiaľ to je: všetky Flow v modeli, ktoré idú do alebo z Model Validator
+# (diagram "Application Cooperation Viewpoint"). Flow v modeli NEMAJÚ názov,
+# takže to, čo sa prenáša, model neurčuje — to dopĺňaš ty.
+#
+# Как заполнять каждую interakciu:
+#   consumer  — кто ИСПОЛЬЗУЕТ сервис (вызывает / отправляет запрос)
+#   provider  — кто ПРЕДОСТАВЛЯЕТ сервис
+#   uses_application_service — сервис провайдера (смотри provides_services в components.yaml)
+#   information — какие Data Objects передаются. Кандидаты из модели:
+#       DO-3DModel (EA #965), DO-ModelingTask (EA #969), DO-Notification (EA #968),
+#       DO-GCode (EA #967), DO-Order (EA #964), DO-Exception (EA #1024)
+#   communication_style — оставь "undecided", пока не решишь API vs event
+#
+# ✍️ Если взаимодействие не нужно для одобрения модели — удали его целиком.
+# =====================================================================
+
+interactions:
+  - id: "INT-001"
+    # z modelu: Flow  Modeling Workspace → Model Validator
+    flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
+    # ✍️ РЕШЕНИЕ: кто consumer, кто provider.
+    consumer: null
+    provider: null
+    uses_application_service: null
+    # ✍️ Что передаётся.
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-002"
+    # z modelu: Flow  Model Validator → Modeling Workspace (opačný smer)
+    flow_in_model: "AC-ModelValidator → AC-ModelingWorkspace"
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-003"
+    # z modelu: Flow  Model Validator → Notifier
+    #           AC-Notifier —Realization→ AS-InformingCustomer (Application Usage)
+    flow_in_model: "AC-ModelValidator → AC-Notifier"
+    # ✍️ Проверь: Model Validator использует сервис Notifier, чтобы сообщить клиенту?
+    consumer: "AC-ModelValidator"
+    provider: "AC-Notifier"
+    uses_application_service: "AS-InformingCustomer"
+    # ✍️ Что передаётся (например, уведомление о модели на одобрение).
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-004"
+    # z modelu: Flow  Model Validator → Order Orchestrator
+    flow_in_model: "AC-ModelValidator → AC-OrderOrchestrator"
+    # ✍️ РЕШЕНИЕ: кто consumer, кто provider и через какой сервис.
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-005"
+    # z modelu: Flow  Model Validator → Slicer
+    flow_in_model: "AC-ModelValidator → AC-Slicer"
+    # ✍️ Нужен ли Slicer для одобрения модели, или это уже следующий шаг (печать)?
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-006"
+    # z modelu: Customer portal —Composition→ Modeler chat (Application Interface, EA #1031)
+    #           Modeler chat —Serving→ Model Pipeline
+    # ✍️ РЕШЕНИЕ: здесь ли клиент одобряет или отклоняет модель?
+    # ✍️ Если да — consumer = клиент или портал, provider = AC-ModelValidator,
+    # ✍️ uses_application_service = AS-ApprovingModel. Если нет — опиши свой канал.
+    flow_in_model: "Customer portal → Modeler chat → Model Pipeline"
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null

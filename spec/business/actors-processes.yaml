@@ -1,0 +1,91 @@
+# =====================================================================
+# spec/business/actors-processes.yaml
+# Funkcionalita: schválenie 3D modelu zákazníkom
+#
+# ПОДСКАЗКИ: строки "# ✍️" — подсказки, после заполнения удали.
+#
+# Mapovanie ID → prvok v modeli Sparx EA
+#   ACT-Clients               = Business Actor "Clients"                        EA #127
+#   ACT-3DModeler             = Business Actor "3D modeler"                     EA #45
+#   BP-HandleCustomPartOrder  = Business Process "Handle custom part order"     EA #873
+#   BP-AssessRequestAndQuote  = Business Process "Assess request and quote"     EA #874
+#   BP-ModelThePart           = Business Process "Model the part"               EA #875
+#   BP-PrintAndCheckQuality   = Business Process "Print and check quality"      EA #876
+#   BS-3DModelingApproval     = Business Service "3D modeling & model approval" EA #828
+#   BO-3DModel                = Business Object "3D model"                      EA #882
+#   BO-Order                  = Business Object "Order"                         EA #881
+#
+# Poznámka: v modeli sú to Business Actors, nie Business Roles. Framework povoľuje
+# "actor alebo role", preto prefix ACT-. Ak neskôr pridáš roly, zmeň na ROLE-.
+# =====================================================================
+
+actors_roles:
+  - id: "ACT-Clients"
+    name: "Clients"
+    type: "Business Actor"
+    # z modelu: BS-3DModelingApproval —Serving→ ACT-Clients
+    # ✍️ За что отвечает клиент в ЭТОМ процессе (а не вообще). 1 предложение.
+    responsibility: ""
+
+  - id: "ACT-3DModeler"
+    name: "3D modeler"
+    type: "Business Actor"
+    # z modelu: ACT-3DModeler —Assignment→ BP-ModelThePart
+    # ✍️ За что отвечает моделлер в этом процессе. 1 предложение.
+    responsibility: ""
+
+business_objects:
+  - id: "BO-3DModel"
+    name: "3D model"
+    # z modelu: BP-ModelThePart —Access write→ BO-3DModel
+    #           BP-PrintAndCheckQuality —Access read→ BO-3DModel
+    # ✍️ Что такое 3D-модель для бизнеса (не файл, а смысл). 1 предложение.
+    meaning: ""
+
+  - id: "BO-Order"
+    name: "Order"
+    # z modelu: BO-Order —Association→ BO-3DModel
+    # ✍️ Что такое заказ для бизнеса. 1 предложение.
+    meaning: ""
+
+processes:
+  - id: "BP-ModelThePart"
+    name: "Model the part"
+    # z modelu: je súčasťou BP-HandleCustomPartOrder (Composition)
+    part_of: "BP-HandleCustomPartOrder"
+    # z modelu: Assignment z ACT-3DModeler
+    owner: "ACT-3DModeler"
+
+    # ✍️ С ЧЕГО начинается процесс — событие или условие.
+    # ✍️ Подсказка из модели: Flow «paid order» приходит из BP-AssessRequestAndQuote.
+    trigger: ""
+
+    # ✍️ Что должно быть правдой ДО начала (например, заказ оплачен, есть описание детали).
+    preconditions:
+      - ""
+
+    # ✍️ Основной ход по шагам, от триггера до результата. Каждый шаг — «кто что делает».
+    # ✍️ В модели шагов нет — это полностью твой текст. Обычно 4–7 шагов.
+    # ✍️ Здесь должен быть шаг, где клиент одобряет или отклоняет модель.
+    main_flow:
+      - ""
+      - ""
+      - ""
+
+    # ✍️ Исключения, которые МЕНЯЮТ результат процесса (не все возможные ошибки).
+    # ✍️ Идеи: клиент отклонил модель; закончились бесплатные ревизии; клиент не отвечает.
+    exceptions:
+      - ""
+
+    # ✍️ Чем процесс заканчивается — наблюдаемый бизнес-результат.
+    # ✍️ Подсказка из модели: Flow «approved 3D model» уходит в BP-PrintAndCheckQuality.
+    outcome: ""
+
+    # z modelu: BP-ModelThePart —Realization→ BS-3DModelingApproval
+    provides_business_services:
+      - "BS-3DModelingApproval"
+
+    # z modelu: BP-ModelThePart —Access write→ BO-3DModel
+    business_objects: ["BO-3DModel"]
+
+    requirements: ["R-001"]
