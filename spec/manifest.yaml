@@ -35,7 +35,23 @@ authoritative:
   gap_analysis: "spec/architecture/migration/gap-analysis.md"
 
 supporting:
-  architecture_views: []
+  architecture_views:
+    - path: "spec/architecture/views/layered.png"
+      viewpoint: "Layered Viewpoint"
+    - path: "spec/architecture/views/service-realization.png"
+      viewpoint: "Service Realization Viewpoint"
+    - path: "spec/architecture/views/application-usage.png"
+      viewpoint: "Application Usage Viewpoint"
+    - path: "spec/architecture/views/application-cooperation.png"
+      viewpoint: "Application Cooperation Viewpoint"
+    - path: "spec/architecture/views/application-structure.png"
+      viewpoint: "Application Structure Viewpoint"
+    - path: "spec/architecture/views/business-process-cooperation.png"
+      viewpoint: "Business Process Cooperation Viewpoint"
+    - path: "spec/architecture/views/information-structure.png"
+      viewpoint: "Information Structure Viewpoint"
+    - path: "spec/architecture/views/requirements-realization.png"
+      viewpoint: "Requirements Realization Viewpoint"
   architecture_context: "spec/architecture/context/architecture-context.yaml"
 
 working:
