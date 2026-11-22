@@ -1,0 +1,76 @@
+# =====================================================================
+# spec/application/data-objects.yaml
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+#
+# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
+# Bez databázového návrhu: žiadne tabuľky, stĺpce, indexy (framework kap. 20).
+#
+# Mapovanie ID → prvok v modeli Sparx EA
+#   DO-Order        = Data Object "Order"          EA #964
+#   DO-PromptOrder  = Data Object "Prompt Order"   EA #976   (cesta 1)
+#   DO-ModelOrder   = Data Object "Model order"    EA #975   (cesta 2)
+#   DO-3DModel      = Data Object "3D model"       EA #965
+#   BO-Order        = Business Object "Order"      EA #881
+#   BO-3DModel      = Business Object "3D model"   EA #882
+#   ART-PartModelFile = Artifact "Part model file (.stl)" EA #1022
+# =====================================================================
+
+data_objects:
+  - id: "DO-Order"
+    name: "Order"
+    # ✍️ Что значит эта информация для приложения. 1 предложение.
+    meaning: ""
+    # z modelu: DO-Order —Realization→ BO-Order
+    related_business_object: "BO-Order"
+    # z modelu: Customer UI —Access write→ DO-Order;  Order API —Access read/update→ DO-Order
+    #           (oba interfejsy patria komponentom Customer portal a Order Orchestrator)
+    # ✍️ РЕШЕНИЕ: кто владелец (owner_component)?
+    owner_component: null
+    # ✍️ true / false — есть ли персональные данные клиента (GDPR, в модели есть Constraint GDPR).
+    sensitive_data: null
+
+  - id: "DO-PromptOrder"
+    name: "Prompt Order"
+    # z modelu: DO-PromptOrder —Specialization→ DO-Order  (druh objednávky)
+    specialization_of: "DO-Order"
+    # ✍️ Что это: заказ, где клиент даёт описание/схемы и модель делаем мы (VAR-1).
+    meaning: ""
+    related_business_object: "BO-Order"
+    # z modelu: AC-ModelingWorkspace —Access read→ DO-PromptOrder (len čítanie)
+    # ✍️ РЕШЕНИЕ: кто его создаёт/меняет? В модели write-доступа нет ни у кого.
+    owner_component: null
+    sensitive_data: null
+
+  - id: "DO-ModelOrder"
+    name: "Model order"
+    # z modelu: DO-ModelOrder —Specialization→ DO-Order
+    #           DO-ModelOrder —Aggregation→ DO-3DModel  (obsahuje model zákazníka)
+    specialization_of: "DO-Order"
+    contains: ["DO-3DModel"]
+    # ✍️ Что это: заказ с готовой моделью клиента (VAR-2).
+    meaning: ""
+    related_business_object: "BO-Order"
+    # z modelu: AC-ModelValidator —Access read→ DO-ModelOrder
+    # ✍️ РЕШЕНИЕ: кто его создаёт/меняет? В модели write-доступа нет ни у кого.
+    owner_component: null
+    sensitive_data: null
+
+  - id: "DO-3DModel"
+    name: "3D model"
+    # ✍️ Что это для приложения. 1 предложение.
+    meaning: ""
+    # z modelu: DO-3DModel —Realization→ BO-3DModel
+    #           ART-PartModelFile (.stl) —Realization→ DO-3DModel
+    related_business_object: "BO-3DModel"
+    realized_by_artifact: "ART-PartModelFile"
+    # z modelu: AC-ModelValidator —Access read/write→ DO-3DModel (jediný zápis v modeli)
+    #           Model Intake (interface) —Access read→ DO-3DModel
+    # ✍️ РЕШЕНИЕ: владелец — AC-ModelValidator? А кто пишет модель в пути 1
+    # ✍️ (Modeling Workspace)? В модели у него нет write к DO-3DModel — добавить или нет?
+    owner_component: null
+    sensitive_data: null
+
+# ✍️ ЕЩЁ ОДНО РЕШЕНИЕ (для lifecycles.yaml позже): где хранится состояние одобрения
+# ✍️ («ждёт / одобрено / отклонено», номер ревизии)? Варианты:
+# ✍️   a) это состояния DO-3DModel
+# ✍️   b) новый Data Object (например, "Model approval") — тогда добавь его сюда и в модель

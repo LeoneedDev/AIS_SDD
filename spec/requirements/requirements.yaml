@@ -1,60 +1,68 @@
 # =====================================================================
 # spec/requirements/requirements.yaml
-# Funkcionalita: schválenie 3D modelu zákazníkom
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
 #
-# ПОДСКАЗКИ: строки, начинающиеся с "# ✍️", — подсказки для тебя.
-#            Когда впишешь текст, удали их.
-#            Пустые "" и null — места, которые заполняешь ты.
+# ПОДСКАЗКИ: строки "# ✍️" — подсказки для тебя, после заполнения удали.
+#            "" и null — места, которые заполняешь ты.
+#            "# z modelu:" — факт из .qea, не меняй.
 #
-# Mapovanie ID → prvok v modeli Sparx EA (EA #ID = Object_ID v .qea)
-#   R-001                   = Requirement "3D model approval (2 free revisions)"        EA #671
-#   G-001                   = Goal "Unique part made as a single piece"                 EA #665
-#   PRIN-001                = Principle "Nothing is printed without customer approval"  EA #667
-#   C-001                   = Constraint "Only 3D printing within own printers' limits" EA #669
-#   BS-3DModelingApproval   = Business Service "3D modeling & model approval"           EA #828
-#   AS-ApprovingModel       = Application Service "Aproving model"                      EA #904
+# Mapovanie ID → prvok v modeli Sparx EA (EA # = Object_ID v .qea)
+#   R-001                    = Requirement "3D model approval (2 free revisions)"        EA #671
+#   G-001                    = Goal "Unique part made as a single piece"                 EA #665
+#   PRIN-001                 = Principle "Nothing is printed without customer approval"  EA #667
+#   C-001                    = Constraint "Only 3D printing within own printers' limits" EA #669
+#   BS-3DModelingApproval    = Business Service "3D modeling & model approval"           EA #828
+#   AS-ModellingOfComponent  = Application Service "Modelling of component"              EA #903
+#   AS-ApprovingModel        = Application Service "Aproving model"                      EA #904
 # =====================================================================
 
 requirements:
   - id: "R-001"
     title: "3D model approval (2 free revisions)"
 
-    # ✍️ ЧТО система должна позволить или гарантировать. 1–2 предложения,
-    # ✍️ без технологий и без кнопок. Начни с «Systém musí umožniť…» / «Pred … musí …».
+    # ✍️ ЧТО система должна позволить / гарантировать. 1–2 предложения, без технологий.
+    # ✍️ Учти оба пути: модель делаем мы ИЛИ модель приносит клиент.
     statement: >
 
 
-    # ✍️ ПОЧЕМУ это нужно. Подсказка из модели: требование поддерживает принцип
-    # ✍️ PRIN-001 «nič sa netlačí bez schválenia zákazníkom» и цель G-001.
-    # ✍️ В модели есть и бизнес-контракт «General terms (2 free model revisions…)» EA #823.
+    # ✍️ ПОЧЕМУ. Подсказка из модели: требование реализует принцип PRIN-001
+    # ✍️ («nič sa netlačí bez schválenia zákazníkom») и цель G-001.
+    # ✍️ Бизнес-контракт в модели: «General terms (2 free model revisions, 14-day complaint)» EA #823.
     rationale: ""
 
     # z modelu: R-001 —Realization→ G-001
     source_goals: ["G-001"]
 
-    # ✍️ КТО отвечает за смысл требования (роль или актор). В модели владельца нет.
-    # ✍️ Кандидаты из модели: Manager (EA #40), Management (CEO) (EA #47), 3D modeler (EA #45).
+    # ✍️ КТО отвечает за смысл требования. В модели владельца нет.
+    # ✍️ Кандидаты: Manager (EA #40), Management (CEO) (EA #47), 3D modeler (EA #45).
     owner: null
 
     # ✍️ "must" / "should" / "could"
     priority: null
 
-    # draft, kým ho neschváli reviewer / vyučujúci
     status: "draft"
 
     # z modelu: BS-3DModelingApproval —Realization→ R-001
-    #           AS-ApprovingModel slúži procesu, ktorý realizuje BS-3DModelingApproval
-    realized_by: ["BS-3DModelingApproval", "AS-ApprovingModel"]
+    #           cesta 1: AS-ModellingOfComponent ─Serving→ Junction ─Serving→ BP-ModelThePart
+    #           cesta 2: AS-ApprovingModel       ─Serving→ Junction ─Serving→ BP-ModelThePart
+    # ✍️ РЕШЕНИЕ: «2 бесплатные ревизии» относятся к пути 1 (моделируем мы), к пути 2
+    # ✍️ (модель клиента) или к обоим? Если только к одному — убери лишний AS ниже.
+    realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
 
-    # ✍️ ID сценариев Gherkin, которые напишешь позже (позитивный и негативный).
-    # ✍️ Можно оставить так и потом вписать такие же ID в .feature файл.
-    acceptance_scenarios: ["SC-001-01", "SC-001-02"]
+    # ✍️ ID Gherkin-сценариев (впишешь такие же в .feature). Предложение:
+    # ✍️   SC-001-01  cesta 1 – model vytvorený nami, zákazník ho schváli        (pozitívny)
+    # ✍️   SC-001-02  cesta 1 – vyčerpané bezplatné revízie                       (negatívny)
+    # ✍️   SC-001-03  cesta 2 – model od zákazníka je v poriadku                   (pozitívny)
+    # ✍️   SC-001-04  cesta 2 – model od zákazníka nie je možné vytlačiť          (negatívny)
+    # ✍️ Оставь те, что подходят, лишние удали.
+    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04"]
 
 constraints:
-  # z modelu: C-001 —Realization→ G-001 aj PRIN-001 (rovnaký cieľ a princíp ako R-001).
-  # ✍️ Реши, относится ли это ограничение к одобрению модели. Если нет — удали весь блок.
+  # z modelu: C-001 —Realization→ G-001 aj PRIN-001
+  # ✍️ Относится ли это к функции? Например, проверка модели клиента (путь 2) может
+  # ✍️ проверять именно «влезет ли в наши принтеры». Если не относится — удали блок.
   - id: "C-001"
-    # ✍️ Что нельзя нарушить, своими словами (что значит «в пределах своих принтеров»).
+    # ✍️ Что нельзя нарушить, своими словами.
     statement: ""
     owner: null
     status: "draft"

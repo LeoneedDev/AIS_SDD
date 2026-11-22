@@ -1,11 +1,10 @@
 # =====================================================================
 # spec/application/service-realization.yaml
-# Funkcionalita: schválenie 3D modelu zákazníkom
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
 #
-# Tento súbor je textová verzia diagramu "Service Realization Viewpoint".
-# Takmer všetko je prevzaté z modelu; tvoj text je iba pole "note".
-#
-# Mapovanie ID → prvok v modeli: pozri hlavičky actors-processes.yaml a components.yaml.
+# Textová verzia diagramu "Service Realization Viewpoint" (EA diagram #64).
+# Takmer všetko je z modelu; tvoj text je iba "condition" pri cestách a "note".
+# ID: pozri hlavičky actors-processes.yaml, components.yaml a data-objects.yaml.
 # =====================================================================
 
 service_realization:
@@ -15,29 +14,52 @@ service_realization:
     used_by_roles: ["ACT-Clients"]
 
     # z modelu: BP-ModelThePart —Realization→ BS-3DModelingApproval
-    #           BP-HandleCustomPartOrder —Realization→ BS-3DModelingApproval (nadradený proces)
-    realized_by_business_processes:
-      - "BP-ModelThePart"
+    realized_by_business_processes: ["BP-ModelThePart"]
 
-    # z modelu (Application Usage): AS-ApprovingModel —Serving→ BP-ModelThePart
-    # ✍️ В модели тому же процессу служит и AS-ModellingOfComponent (EA #903).
-    # ✍️ Добавь его, только если он нужен для одобрения модели.
+    # z modelu: oba služby slúžia procesu cez Junction "Who provides model?" (EA #1093)
     supported_by_application_services:
+      - "AS-ModellingOfComponent"
       - "AS-ApprovingModel"
 
-    # z modelu (Service Realization): AC-ModelValidator —Realization→ AS-ApprovingModel
     provided_by_components:
+      - "AC-ModelingWorkspace"
       - "AC-ModelValidator"
 
-    # z modelu: AS-3DPrinting —Composition→ AS-ApprovingModel
-    #           (AS-ApprovingModel je časťou väčšej služby AS-3DPrinting)
+    # z modelu: AS-3DPrinting —Composition→ AS-ModellingOfComponent, AS-ApprovingModel
     part_of_application_service: "AS-3DPrinting"
+
+    # z modelu: Junction "Who provides model?"
+    #   AS-ModellingOfComponent ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
+    #   AS-ApprovingModel       ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
+    # ⚠ V modeli má junction junctionKind = AND. Pre "buď–alebo" má byť OR.
+    alternative_paths:
+      junction: "JN-WhoProvidesModel"
+      junction_kind_in_model: "AND"   # ✍️ po oprave v EA zmeň na "OR"
+      paths:
+        - id: "VAR-1"
+          name: "Model vytvoríme my"
+          application_service: "AS-ModellingOfComponent"
+          # z modelu: AC-ModelingWorkspace —Realization→ AS-ModellingOfComponent
+          component: "AC-ModelingWorkspace"
+          # z modelu: AC-ModelingWorkspace —Access read→ DO-PromptOrder
+          data_objects: ["DO-PromptOrder"]
+          # ✍️ Когда выбирается (то же, что в actors-processes.yaml → variants).
+          condition: ""
+
+        - id: "VAR-2"
+          name: "Model dodá zákazník"
+          application_service: "AS-ApprovingModel"
+          # z modelu: AC-ModelValidator —Realization→ AS-ApprovingModel
+          component: "AC-ModelValidator"
+          # z modelu: AC-ModelValidator —Access read→ DO-ModelOrder
+          #           AC-ModelValidator —Access read/write→ DO-3DModel
+          data_objects: ["DO-ModelOrder", "DO-3DModel"]
+          condition: ""
 
     requirements: ["R-001"]
 
-    # ✍️ По желанию: 1–2 предложения, ЗАЧЕМ эта цепочка — как приложение помогает
-    # ✍️ бизнес-сервису. Можно удалить, если нечего добавить.
+    # ✍️ По желанию: 1–2 предложения, как приложение помогает бизнес-сервису.
     note: ""
 
-    # Zdroj: diagram "Service Realization Viewpoint" (vytvorený skriptom),
-    #        "Aplication Usage Viewpoint", "Business Process Cooperation Viewpoint"
+    # Zdroj: diagram "Service Realization Viewpoint", "Aplication Usage Viewpoint",
+    #        "Business Process Cooperation Viewpoint"

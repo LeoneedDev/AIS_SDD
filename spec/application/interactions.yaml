@@ -1,42 +1,43 @@
 # =====================================================================
 # spec/application/interactions.yaml
-# Funkcionalita: schválenie 3D modelu zákazníkom
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
 #
-# ПОДСКАЗКИ: строки "# ✍️" — подсказки, после заполнения удали.
+# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
 #
-# Odkiaľ to je: všetky Flow v modeli, ktoré idú do alebo z Model Validator
+# Odkiaľ to je: všetky Flow v modeli z/do Modeling Workspace a Model Validator
 # (diagram "Application Cooperation Viewpoint"). Flow v modeli NEMAJÚ názov,
-# takže to, čo sa prenáša, model neurčuje — to dopĺňaš ty.
+# takže čo sa prenáša, model neurčuje — dopĺňaš ty.
 #
-# Как заполнять каждую interakciu:
+# Как заполнять:
 #   consumer  — кто ИСПОЛЬЗУЕТ сервис (вызывает / отправляет запрос)
 #   provider  — кто ПРЕДОСТАВЛЯЕТ сервис
-#   uses_application_service — сервис провайдера (смотри provides_services в components.yaml)
-#   information — какие Data Objects передаются. Кандидаты из модели:
-#       DO-3DModel (EA #965), DO-ModelingTask (EA #969), DO-Notification (EA #968),
-#       DO-GCode (EA #967), DO-Order (EA #964), DO-Exception (EA #1024)
-#   communication_style — оставь "undecided", пока не решишь API vs event
+#   uses_application_service — сервис провайдера (provides_services в components.yaml)
+#   information — Data Objects. Кандидаты: DO-3DModel, DO-ModelOrder, DO-PromptOrder,
+#       DO-Order, DO-ModelingTask (EA #969), DO-Notification (EA #968), DO-GCode (EA #967)
+#   communication_style — "undecided", пока не решишь API vs event
 #
-# ✍️ Если взаимодействие не нужно для одобрения модели — удали его целиком.
+# ✍️ Взаимодействие, которое не нужно для этой функции, удали целиком.
 # =====================================================================
 
 interactions:
+  # ================= CESTA 1: model vytvoríme my =================
   - id: "INT-001"
-    # z modelu: Flow  Modeling Workspace → Model Validator
-    flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
-    # ✍️ РЕШЕНИЕ: кто consumer, кто provider.
+    path: "VAR-1"
+    flow_in_model: "AC-OrderOrchestrator → AC-ModelingWorkspace"
+    # z modelu aj: AC-OrderOrchestrator —Access write→ DO-ModelingTask
+    # ✍️ Это старт пути 1 (заказ передаётся в моделирование)? Кто consumer/provider?
     consumer: null
     provider: null
     uses_application_service: null
-    # ✍️ Что передаётся.
     information: []
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
 
   - id: "INT-002"
-    # z modelu: Flow  Model Validator → Modeling Workspace (opačný smer)
-    flow_in_model: "AC-ModelValidator → AC-ModelingWorkspace"
+    path: "VAR-1"
+    flow_in_model: "AC-ModelingWorkspace → AC-ModelRepository"
+    # ✍️ Сохранение модели? Model Repository не реализует ни одного сервиса в модели.
     consumer: null
     provider: null
     uses_application_service: null
@@ -46,23 +47,9 @@ interactions:
     decision: null
 
   - id: "INT-003"
-    # z modelu: Flow  Model Validator → Notifier
-    #           AC-Notifier —Realization→ AS-InformingCustomer (Application Usage)
-    flow_in_model: "AC-ModelValidator → AC-Notifier"
-    # ✍️ Проверь: Model Validator использует сервис Notifier, чтобы сообщить клиенту?
-    consumer: "AC-ModelValidator"
-    provider: "AC-Notifier"
-    uses_application_service: "AS-InformingCustomer"
-    # ✍️ Что передаётся (например, уведомление о модели на одобрение).
-    information: []
-    communication_style: "undecided"
-    requirements: ["R-001"]
-    decision: null
-
-  - id: "INT-004"
-    # z modelu: Flow  Model Validator → Order Orchestrator
-    flow_in_model: "AC-ModelValidator → AC-OrderOrchestrator"
-    # ✍️ РЕШЕНИЕ: кто consumer, кто provider и через какой сервис.
+    path: "VAR-1"
+    flow_in_model: "AC-ModelRepository → AC-ModelingWorkspace"
+    # ✍️ Загрузка модели / прошлой ревизии?
     consumer: null
     provider: null
     uses_application_service: null
@@ -71,10 +58,26 @@ interactions:
     requirements: ["R-001"]
     decision: null
 
+  - id: "INT-004"
+    path: "VAR-1"
+    flow_in_model: "AC-ModelingWorkspace → AC-CustomerPortal"
+    # ✍️ Модель показывается клиенту на одобрение? Customer portal реализует
+    # ✍️ AS-InformingCustomer и AS-OnlineOrdering — какой из них используется?
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  # ================= SPOJENIE CIEST =================
   - id: "INT-005"
-    # z modelu: Flow  Model Validator → Slicer
-    flow_in_model: "AC-ModelValidator → AC-Slicer"
-    # ✍️ Нужен ли Slicer для одобрения модели, или это уже следующий шаг (печать)?
+    path: "VAR-1 / VAR-2"
+    flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
+    # ✍️ Модель, сделанная нами, тоже проходит проверку Model Validator?
+    # ✍️ Если да — consumer = AC-ModelingWorkspace, provider = AC-ModelValidator,
+    # ✍️ uses_application_service = AS-ApprovingModel.
     consumer: null
     provider: null
     uses_application_service: null
@@ -84,12 +87,64 @@ interactions:
     decision: null
 
   - id: "INT-006"
-    # z modelu: Customer portal —Composition→ Modeler chat (Application Interface, EA #1031)
-    #           Modeler chat —Serving→ Model Pipeline
-    # ✍️ РЕШЕНИЕ: здесь ли клиент одобряет или отклоняет модель?
-    # ✍️ Если да — consumer = клиент или портал, provider = AC-ModelValidator,
-    # ✍️ uses_application_service = AS-ApprovingModel. Если нет — опиши свой канал.
+    path: "VAR-1 / VAR-2"
+    flow_in_model: "AC-ModelValidator → AC-ModelingWorkspace"
+    # ✍️ Возврат на доработку? Или переход из VAR-2 в VAR-1, если модель клиента плохая?
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  # ================= CESTA 2: model dodá zákazník =================
+  - id: "INT-007"
+    path: "VAR-2"
+    flow_in_model: "AC-ModelValidator → AC-Notifier"
+    # z modelu: AC-Notifier —Realization→ AS-InformingCustomer
+    # ✍️ Проверь: Model Validator через Notifier сообщает клиенту результат проверки?
+    consumer: "AC-ModelValidator"
+    provider: "AC-Notifier"
+    uses_application_service: "AS-InformingCustomer"
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-008"
+    path: "VAR-2"
+    flow_in_model: "AC-ModelValidator → AC-OrderOrchestrator"
+    # z modelu: AC-OrderOrchestrator —Realization→ AS-OnlineOrdering
+    # ✍️ Сообщает, что модель одобрена и заказ может идти дальше?
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  - id: "INT-009"
+    path: "VAR-2"
+    flow_in_model: "AC-ModelValidator → AC-Slicer"
+    # ✍️ Относится к одобрению или это уже следующий шаг (печать)? Если печать — удали.
+    consumer: null
+    provider: null
+    uses_application_service: null
+    information: []
+    communication_style: "undecided"
+    requirements: ["R-001"]
+    decision: null
+
+  # ================= KANÁL ZÁKAZNÍKA =================
+  - id: "INT-010"
+    path: "VAR-1 / VAR-2"
+    # z modelu: AC-CustomerPortal —Composition→ "Modeler chat" (Application Interface, EA #1031)
+    #           "Modeler chat" —Serving→ ACO-ModelPipeline
     flow_in_model: "Customer portal → Modeler chat → Model Pipeline"
+    # ✍️ РЕШЕНИЕ: через это клиент даёт описание (VAR-1), загружает свою модель (VAR-2)
+    # ✍️ и/или одобряет модель? Опиши, что из этого.
     consumer: null
     provider: null
     uses_application_service: null
