@@ -1,0 +1,27 @@
+# =====================================================================
+# spec/requirements/business-rules.yaml
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+#
+# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
+# Invariant musí platiť v každom platnom stave (aj pri retry, chybe, súbehu).
+# =====================================================================
+
+business_rules:
+  - id: "BR-001"
+    # ✍️ Кандидат из PRIN-001 «Nothing is printed without customer approval».
+    title: ""
+    type: "invariant"
+    statement: ""
+    owner: null
+    requirements: ["R-001"]
+    scenarios: []
+
+  - id: "BR-002"
+    # ✍️ Кандидат: лимит 2 бесплатных ревизий (путь VAR-1?). Что после лимита?
+    title: ""
+    # ✍️ "invariant" / "rule"
+    type: null
+    statement: ""
+    owner: null
+    requirements: ["R-001"]
+    scenarios: []

@@ -1,0 +1,20 @@
+# =====================================================================
+# spec/architecture/continuum/reuse-catalog.yaml
+# Kandidáti z vlastného architektonického projektu. Ak nič nepreberáte,
+# zapíš to – nevymýšľaj dodávateľa ani organizáciu.
+# =====================================================================
+
+reuse_candidates: []
+#  - id: "SBB-..."
+#    classification: ""
+#    realizes_abb: ""
+#    source: ""
+#    owner: ""
+#    version: ""
+#    maturity: ""
+#    evidence: ""
+#    decision: "proposed"
+#    related_adr: null
+
+# ✍️ Ak sa nič nepreberá: "Pre túto funkcionalitu sa nepreberá žiadny building block."
+note: ""

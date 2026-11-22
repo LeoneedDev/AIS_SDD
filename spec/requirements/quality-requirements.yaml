@@ -1,0 +1,16 @@
+# =====================================================================
+# spec/requirements/quality-requirements.yaml
+# Nie-funkčné požiadavky. Čísla NEODHADUJ – ak nie sú schválené, zapíš otvorenú otázku.
+# =====================================================================
+
+quality_requirements: []
+#  - id: "QR-001"
+#    category: ""        # ✍️ auditability / security / performance / availability
+#    statement: ""
+#    measure: ""
+#    owner: null
+#    status: "draft"
+
+open_questions:
+  # ✍️ Napr. constraint GDPR z modelu – týka sa dát zákazníka v tejto funkcii?
+  - ""

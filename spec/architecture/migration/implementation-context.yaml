@@ -1,0 +1,17 @@
+# =====================================================================
+# spec/architecture/migration/implementation-context.yaml
+# Plateaus, Work Packages a Deliverables z modelu. Bez MD, ceny a harmonogramu.
+# Neschválené položky označ ako návrh s otvorenou otázkou.
+# =====================================================================
+
+implementation:
+  # ✍️ ID Plateau z modelu (AS-IS / TO-BE).
+  current_plateau: null
+  target_plateau: null
+  work_packages: []
+  #  - id: "WP-..."
+  #    name: ""
+  #    delivers: []
+  #    realizes_requirements: ["R-001"]
+  #    status: "proposed"
+  deliverables: []

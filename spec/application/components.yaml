@@ -32,6 +32,8 @@ application_components:
 
     # ✍️ ЗА ЧТО отвечает. Одна ответственность, без классов и фреймворков.
     responsibility: >
+      Отвечает за то чтобы у модельеров \
+      было пространство совсместное где можно выполнять работы по моедлированию
 
 
     # z modelu: AC-ModelingWorkspace —Realization→ AS-ModellingOfComponent

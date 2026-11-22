@@ -1,0 +1,16 @@
+# =====================================================================
+# spec/technology/technology-context.yaml
+# Vyplň iba ak System Software / Technology Service ovplyvňuje code, config
+# alebo deployment tejto funkcie. AI nesmie sama zapísať "not applicable".
+# =====================================================================
+
+technology_context:
+  # ✍️ "applicable" / "not applicable"
+  status: null
+  reason: ""
+  # ✍️ Pri "not applicable" – kto to potvrdil (napr. "Solution Architect").
+  confirmed_by_role: null
+
+nodes: []
+system_software: []
+technology_services: []

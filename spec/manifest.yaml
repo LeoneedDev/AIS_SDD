@@ -1,0 +1,65 @@
+# =====================================================================
+# spec/manifest.yaml – obsah specification package
+# Cesty sú relatívne ku koreňu repozitára. null = podklad nie je dodaný.
+# =====================================================================
+
+specification:
+  version: "0.1.0"
+  status: "draft"
+  # ✍️ Označenie dohodnutého stavu modelu v Sparx EA (napr. "B-01").
+  architecture_baseline: null
+  feature: "3D model pre zákazku – vytvorenie alebo schválenie modelu"
+  change: "R-001"
+  ai_rules_version: "4.0"
+
+governance:
+  ai_rules: ".agents/rules.md"
+
+authoritative:
+  architecture_model: null   # model zostáva v Sparx EA u tímu
+  glossary: "spec/glossary.md"
+  requirements: "spec/requirements/requirements.yaml"
+  business_rules: "spec/requirements/business-rules.yaml"
+  quality_requirements: "spec/requirements/quality-requirements.yaml"
+  actors_processes: "spec/business/actors-processes.yaml"
+  business_scenarios: "spec/business/scenarios/"
+  components: "spec/application/components.yaml"
+  service_realization: "spec/application/service-realization.yaml"
+  interactions: "spec/application/interactions.yaml"
+  data_objects: "spec/application/data-objects.yaml"
+  lifecycles: "spec/application/lifecycles.yaml"
+  technology_context: "spec/technology/technology-context.yaml"
+  deployment: "spec/technology/deployment.yaml"
+  contract_design_profile: "spec/policies/contract-design-profile.yaml"
+  stories: "spec/stories/"
+  scenarios: "spec/stories/features/"
+  decisions: "spec/architecture/decisions/"
+  approved_contracts: "spec/contracts/approved/"
+  traceability: "spec/traceability/traceability.yaml"
+  reuse_catalog: "spec/architecture/continuum/reuse-catalog.yaml"
+  implementation_context: "spec/architecture/migration/implementation-context.yaml"
+  gap_analysis: "spec/architecture/migration/gap-analysis.md"
+
+supporting:
+  # ✍️ Pre každý exportovaný obrázok zo Sparx EA pridaj položku.
+  # ✍️ Kandidáti (diagramy použité v spec/): Layered, Application Usage,
+  # ✍️ Application Cooperation, Service Realization, Business Process Cooperation.
+  # ✍️ status zmeň na "approved" až po porovnaní s modelom; reviewed_by = meno/rola.
+  architecture_views: []
+  #  - path: "spec/architecture/views/B-01-layered.png"
+  #    viewpoint: "Layered"
+  #    model_baseline: "B-01"
+  #    status: "draft"
+  #    reviewed_by: null
+  architecture_context: null   # voliteľný ručný súhrn, nie export
+
+working:
+  proposed_contracts: "spec/contracts/proposed/"
+  specification_drafts: "spec/drafts/"
+  prompts: "spec/prompts/"
+  reports: "reports/"
+
+realization:
+  code: "src/"
+  configuration: "config/"
+  tests: "tests/"

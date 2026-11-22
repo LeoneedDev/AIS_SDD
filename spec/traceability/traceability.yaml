@@ -1,0 +1,29 @@
+# =====================================================================
+# spec/traceability/traceability.yaml
+# Pole "meaning" je zámerne ľudské – vysvetľuje, PREČO sú prvky prepojené.
+# Väzby nižšie sú prevzaté z existujúcich spec/ súborov (z modelu).
+# =====================================================================
+
+traces:
+  - from: "G-001"
+    to: "R-001"
+    meaning: "Goal je spresnený Requirementom."
+  - from: "R-001"
+    to: "BP-ModelThePart"
+    meaning: "Requirement mení správanie procesu."
+  - from: "BP-ModelThePart"
+    to: "BS-3DModelingApproval"
+    meaning: "Process realizuje Business Service."
+  - from: "BP-ModelThePart"
+    to: "AS-ModellingOfComponent"
+    meaning: "Process používa Application Service (cesta VAR-1)."
+  - from: "BP-ModelThePart"
+    to: "AS-ApprovingModel"
+    meaning: "Process používa Application Service (cesta VAR-2)."
+  - from: "AS-ModellingOfComponent"
+    to: "AC-ModelingWorkspace"
+    meaning: "Component realizuje Application Service."
+  - from: "AS-ApprovingModel"
+    to: "AC-ModelValidator"
+    meaning: "Component realizuje Application Service."
+  # ✍️ Po doplnení scenárov a contractu pridaj R-001 → SC-001-0x a operation → scenario.

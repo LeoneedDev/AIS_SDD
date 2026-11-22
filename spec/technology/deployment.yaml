@@ -1,0 +1,13 @@
+# =====================================================================
+# spec/technology/deployment.yaml
+# Mapovanie ID → prvok v modeli Sparx EA
+#   ART-PartModelFile = Artifact "Part model file (.stl)" EA #1022
+# =====================================================================
+
+artifacts:
+  - id: "ART-PartModelFile"
+    name: "Part model file (.stl)"
+    # ✍️ Что реализует этот артефакт по модели? Не угадывай – смотри EA.
+    realizes: null
+    deployed_on: null
+    uses_technology_services: []

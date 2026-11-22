@@ -1,0 +1,20 @@
+# =====================================================================
+# spec/application/lifecycles.yaml
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+#
+# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
+# Iba význam stavov a povolené prechody – žiadne tabuľky ani persistence.
+# =====================================================================
+
+lifecycles:
+  - data_object: "DO-3DModel"
+    # ✍️ Стартовое состояние (например "draft" для VAR-1 / "submitted" для VAR-2).
+    initial_state: null
+    transitions:
+      # ✍️ Опиши переходы обоих путей: создание, отправка на одобрение, ревизия,
+      # ✍️ одобрение, отклонение, превышение бесплатных ревизий.
+      - from: null
+        to: null
+        trigger: ""
+        guard_rules: []
+        requirements: ["R-001"]
