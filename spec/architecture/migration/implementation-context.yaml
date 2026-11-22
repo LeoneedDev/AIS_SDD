@@ -43,11 +43,11 @@ implementation:
   deliverables:
     - id: "D-001"
       name: "Account management and Billing component deployed (company accounts, invoices)"
-      realizes: "Acount managemement and Billing (AC, EA #1062)"
+      realizes: "Acount managemement and Billing (AC, EA #1109)"
       plateau: "PL-TRANSITION"
     - id: "D-002"
       name: "Pricing Engine deployed (automatic quote calculation)"
-      realizes: "Pricing Engine (AC, EA #1061)"
+      realizes: "Pricing Engine (AC, EA #1108)"
       plateau: "PL-TRANSITION"
     - id: "D-003"
       name: "Complaint handling and reprint flow in operation (14-day complaints)"
@@ -55,7 +55,7 @@ implementation:
       plateau: "PL-TOBE"
     - id: "D-004"
       name: "Materials Inventory component deployed (stock and consumption tracking)"
-      realizes: "Materials Inventory (AC, EA #1060)"
+      realizes: "Materials Inventory (AC, EA #1107)"
       plateau: "PL-TOBE"
 
   implementation_events:

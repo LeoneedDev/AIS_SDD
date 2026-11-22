@@ -16,7 +16,9 @@
 #   AS-ApprovingModel       = Application Service "Aproving model"         EA #904
 #   AS-3DPrinting           = Application Service "3D printing"            EA #832
 #   AS-InformingCustomer    = Application Service "Informing and contacting customer" EA #907
-#   AS-OnlineOrdering       = Application Service "Online ordering & quoting" EA #831
+#   AS-CreatingRequest      = Application Service "Creating a request"     EA #909
+#   AS-RequestProcessing    = Application Service "Request processing"     EA #902
+#   AS-ApprovingPrintSettings = Application Service "Aproving print settings" EA #905
 # =====================================================================
 
 application_components:
@@ -28,8 +30,6 @@ application_components:
       Отвечает за то чтобы у модельеров
       было пространство совсместное где можно выполнять работы по моедлированию
 
-    # ✍️ NESÚLAD V MODELI: kópia v balíku "TO-BE (Target)" (EA #1051) realizuje aj
-    # ✍️ AS-ApprovingModel (C1341), originál #895 iba AS-ModellingOfComponent. Ktorá platí?
     provides_services: ["AS-ModellingOfComponent"]
 
     # ✍️ Чьи сервисы использует — после interactions.yaml (где он consumer).
@@ -77,13 +77,13 @@ application_components:
     name: "Customer portal"
     # ✍️ 1 предложение.
     responsibility: ""
-    provides_services: ["AS-InformingCustomer", "AS-OnlineOrdering"]
+    provides_services: ["AS-InformingCustomer", "AS-CreatingRequest"]
 
   - id: "AC-OrderOrchestrator"
     name: "Order Orchestrator"
     # ✍️ 1 предложение.
     responsibility: ""
-    provides_services: ["AS-OnlineOrdering"]
+    provides_services: ["AS-RequestProcessing"]
 
   - id: "AC-Notifier"
     name: "Notifier"
@@ -96,4 +96,4 @@ application_components:
     part_of_collaboration: "ACO-ModelPipeline"
     # ✍️ 1 предложение.
     responsibility: ""
-    provides_services: ["AS-3DPrinting"]
+    provides_services: ["AS-ApprovingPrintSettings"]

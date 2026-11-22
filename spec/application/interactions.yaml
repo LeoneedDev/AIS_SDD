@@ -55,7 +55,7 @@ interactions:
     path: "VAR-1"
     flow_in_model: "AC-ModelingWorkspace → AC-CustomerPortal"
     # ✍️ Модель показывается клиенту на одобрение? Какой сервис портала:
-    # ✍️ AS-InformingCustomer или AS-OnlineOrdering?
+    # ✍️ AS-InformingCustomer или AS-CreatingRequest?
     consumer: null
     provider: null
     uses_application_service: null
@@ -68,12 +68,11 @@ interactions:
   - id: "INT-005"
     path: "VAR-1 / VAR-2"
     flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
-    # ✍️ Наша модель тоже проходит проверку Model Validator? Если да: consumer =
-    # ✍️ AC-ModelingWorkspace, provider = AC-ModelValidator, сервис = AS-ApprovingModel.
-    # ✍️ Связано с несоответствием TO-BE (#1051) в components.yaml.
-    consumer: null
-    provider: null
-    uses_application_service: null
+    # ✍️ Подтверди: наша модель тоже проходит проверку Model Validator
+    # ✍️ (по модели только он реализует AS-ApprovingModel). Какие данные передаются?
+    consumer: "AC-ModelingWorkspace"
+    provider: "AC-ModelValidator"
+    uses_application_service: "AS-ApprovingModel"
     information: []
     communication_style: "undecided"
     requirements: ["R-001"]

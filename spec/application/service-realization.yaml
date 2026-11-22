@@ -19,8 +19,7 @@ service_realization:
 
     alternative_paths:
       junction: "JN-WhoProvidesModel"
-      # ✍️ V EA je junctionKind = AND, pre "buď–alebo" má byť OR. Po oprave zmeň.
-      junction_kind_in_model: "AND"
+      junction_kind_in_model: "OR"
       paths:
         - id: "VAR-1"
           name: "Model vytvoríme my"
