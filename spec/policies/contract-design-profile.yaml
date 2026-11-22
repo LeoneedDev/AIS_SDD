@@ -1,15 +1,8 @@
-# =====================================================================
-# spec/policies/contract-design-profile.yaml
-# Spoločné technické pravidlá pre contracty. Navrhne tím, potvrdí človek.
-# Kým je "draft", AI nesmie hodnoty pokladať za rozhodnutia projektu.
-# Ponechaj iba relevantné časti (http a/alebo events).
-# =====================================================================
-
 contract_design_profile:
   status: "draft"
   approved_by: null
   http:
-    specification: null        # ✍️ napr. "OpenAPI 3.1"
+    specification: null
     naming:
       paths: null
       operation_ids: null
@@ -17,7 +10,7 @@ contract_design_profile:
     errors: null
     correlation_id_header: null
   events:
-    specification: null        # ✍️ napr. "AsyncAPI", alebo celú sekciu zmaž
+    specification: null
     naming: null
   security:
     authentication: null

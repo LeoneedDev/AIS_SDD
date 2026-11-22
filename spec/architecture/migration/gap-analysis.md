@@ -1,6 +1,6 @@
 # GAP Analysis
 
-Status: MODELED IN EA (diagram "Gap Analysis" D62) – schválenie: ✍️ (prvky majú v EA status Proposed)
+Status: MODELED IN EA (diagram "Gap Analysis" D62); prvky majú v EA status Proposed.
 
 Porovnávané Plateaus:
 - AS-IS: PL-ASIS (EA #1078)
@@ -19,6 +19,6 @@ Porovnávané Plateaus:
 ## Vzťah k tejto funkcionalite
 
 Žiadny gap v modeli sa neviaže na R-001 (EA #671). Podľa šablóny teda GAP Analysis
-túto zmenu neblokuje. ✍️ Človek potvrdí, že R-001 naozaj nie je dotknutý žiadnym gapom.
+túto zmenu neblokuje.
 
 AI nesmie gaps ani z nich odvodené requirements vymyslieť.

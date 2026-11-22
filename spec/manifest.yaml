@@ -1,13 +1,7 @@
-# =====================================================================
-# spec/manifest.yaml – obsah specification package
-# Cesty sú relatívne ku koreňu repozitára. null = podklad nie je dodaný.
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-# =====================================================================
-
 specification:
   version: "0.1.0"
   status: "draft"
-  architecture_baseline: null   # baseline v EA sa nevytvára; zdroj: EANEWExample.qea (2026-11-22)
+  architecture_baseline: null
   feature: "3D model pre zákazku – vytvorenie alebo schválenie modelu"
   change: "R-001"
   ai_rules_version: "4.0"
@@ -41,18 +35,8 @@ authoritative:
   gap_analysis: "spec/architecture/migration/gap-analysis.md"
 
 supporting:
-  # ✍️ Exportuj z EA ako PNG a pridaj položky: D52 Layered, D64 Service Realization,
-  # ✍️ D51 Application Usage, D50 Application Cooperation, D54 Application Structure,
-  # ✍️ D47 Business Process Cooperation, D60 Information Structure, D48 Requirements Realization,
-  # ✍️ D38 Technology usage (ak technology_context = applicable).
-  # ✍️ status "approved" až po porovnaní s modelom; reviewed_by = meno/rola.
   architecture_views: []
-  #  - path: "spec/architecture/views/B-01-layered.png"
-  #    viewpoint: "Layered"
-  #    model_baseline: "B-01"
-  #    status: "draft"
-  #    reviewed_by: null
-  architecture_context: null
+  architecture_context: "spec/architecture/context/architecture-context.yaml"
 
 working:
   proposed_contracts: "spec/contracts/proposed/"

@@ -1,20 +1,3 @@
-# =====================================================================
-# spec/requirements/requirements.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-# Mapovanie ID → prvok v modeli Sparx EA (Alias v EA = ID nižšie)
-#   R-001                    = Requirement "3D model approval (2 free revisions)"        EA #671
-#   G-001                    = Goal "Unique part made as a single piece"                 EA #665
-#   PRIN-001                 = Principle "Nothing is printed without customer approval"  EA #667
-#   C-001                    = Constraint "Only 3D printing within own printers' limits" EA #669
-#   BS-3DModelingApproval    = Business Service "3D modeling & model approval"           EA #828
-#   AS-ModellingOfComponent  = Application Service "Modelling of component"              EA #903
-#   AS-ApprovingModel        = Application Service "Aproving model"                      EA #904
-#   SH-Manager               = Stakeholder "Manager"                                     EA #654
-#   SH-ManagementCEO         = Stakeholder "Management (CEO)"                            EA #657
-# =====================================================================
-
 requirements:
   - id: "R-001"
     title: "3D model approval (2 free revisions)"
@@ -31,13 +14,11 @@ requirements:
     owner: "SH-Manager"
     priority: "must"
     status: "draft"
-    # ✍️ «2 бесплатные ревизии» — путь VAR-1, VAR-2 или оба? Если один — убери лишний AS.
     realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
-    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04"]
+    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04", "SC-001-05", "SC-001-06", "SC-001-07", "SC-001-08"]
 
 constraints:
   - id: "C-001"
-    # ✍️ DRAFT podľa názvu v modeli. Pôvodný text autora je teraz BR-005. Potvrď znenie.
     statement: >
       Tlačíme iba modely, ktoré sa dajú vytlačiť v rámci parametrov našich
       tlačiarní (rozmer, materiál).

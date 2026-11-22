@@ -1,26 +1,3 @@
-# =====================================================================
-# spec/business/actors-processes.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-# Mapovanie ID → prvok v modeli Sparx EA
-#   ACT-Clients               = Business Actor "Clients"                        EA #127
-#   ACT-3DModeler             = Business Actor "3D modeler"                     EA #45
-#   ACT-Manager               = Business Actor "Manager"                        EA #40
-#   BP-HandleCustomPartOrder  = Business Process "Handle custom part order"     EA #873
-#   BP-AssessRequestAndQuote  = Business Process "Assess request and quote"     EA #874
-#   BP-ModelThePart           = Business Process "Model the part"               EA #875
-#   BP-ApproveTheModel        = Business Process "Approve the model"            EA #1115
-#   BP-PrintAndCheckQuality   = Business Process "Print and check quality"      EA #876
-#   BS-3DModelingApproval     = Business Service "3D modeling & model approval" EA #828
-#   BO-3DModel                = Business Object "3D model"                      EA #882
-#   BO-Order                  = Business Object "Order"                         EA #881
-#   JN-WhoProvidesModel       = Junction "Who provides model?"                  EA #1093
-#
-# Poznámka: v modeli sú to Business Actors, preto prefix ACT-.
-# Pole "variants" je doplnok k šablóne – zachytáva dve cesty z Junction v modeli.
-# =====================================================================
-
 actors_roles:
   - id: "ACT-Clients"
     name: "Clients"
@@ -92,9 +69,7 @@ processes:
           Zákazník pošle hotový 3D model.
         steps:
           - "Zákazník pošle 3D model a 3D modelár ho overí."
-          # ✍️ Противоречие с PRIN-001: печать без одобрения клиента. а) присланная модель =
-          # ✍️ одобрение (записать как правило) или б) клиент всё равно подтверждает?
-          - "Ak model obsahuje chyby, zákazníkovi to oznámime a opýtame sa, či ho chce opraviť. Ak chyby nemá, model ide priamo do tlače."
+          - "Ak model obsahuje chyby, zákazníkovi to oznámime a opýtame sa, či ho chce opraviť. Ak chyby nemá, model ide priamo do tlače bez ďalšieho potvrdenia (BR-008). Ak ho na žiadosť zákazníka opravíme, opravený model zákazník schvaľuje ako pri VAR-1."
 
     exceptions:
       - "Ak zákazník žiada viac než dve rozsiahle úpravy alebo úplné prerobenie modelu, považuje sa to za nový vývoj modelu od nuly."
@@ -116,7 +91,6 @@ processes:
   - id: "BP-ApproveTheModel"
     name: "Approve the model"
     part_of: "BP-ModelThePart"
-    # Zákazník dáva súhlas (PRIN-001); 3D modelár alebo manažér ho zaznamenáva.
     performed_by: ["ACT-Clients", "ACT-3DModeler", "ACT-Manager"]
     business_objects: ["BO-3DModel"]
     trigger: >

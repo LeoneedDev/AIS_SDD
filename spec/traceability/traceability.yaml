@@ -1,11 +1,4 @@
-# =====================================================================
-# spec/traceability/traceability.yaml
-# Pole "meaning" je zámerne ľudské – vysvetľuje, PREČO sú prvky prepojené.
-# "model" = ArchiMate väzba v Sparx EA, z ktorej trace pochádza.
-# =====================================================================
-
 traces:
-  # ---------- motivácia ----------
   - from: "R-001"
     to: "G-001"
     model: "Realization (EA C1041)"
@@ -27,7 +20,6 @@ traces:
     model: "Realization (EA C718)"
     meaning: "Obmedzenie na vlastné tlačiarne patrí k tomu istému princípu."
 
-  # ---------- business ----------
   - from: "BS-3DModelingApproval"
     to: "R-001"
     model: "Realization (EA C1031)"
@@ -61,7 +53,6 @@ traces:
     model: "Assignment (EA C1521)"
     meaning: "Manažér zaznamenáva súhlas zákazníka."
 
-  # ---------- application ----------
   - from: "AS-ModellingOfComponent"
     to: "BP-ModelThePart"
     model: "Serving cez JN-WhoProvidesModel (EA C1073, C1450)"
@@ -84,7 +75,6 @@ traces:
     model: "Realization (EA C1509)"
     meaning: "Repozitár poskytuje ukladanie modelov a revízií."
 
-  # ---------- data ----------
   - from: "AC-ModelValidator"
     to: "DO-3DModel"
     model: "Access read/write (EA C1445)"
@@ -122,4 +112,35 @@ traces:
     model: "Realization (EA C1243)"
     meaning: "Súbor .stl je technická podoba 3D modelu."
 
-  # ✍️ Po doplnení scenárov a contractu pridaj R-001 → SC-001-0x a operation → scenario.
+  - from: "R-001"
+    to: "SC-001-01"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Zákazník schváli model vytvorený nami."
+  - from: "R-001"
+    to: "SC-001-02"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Bezplatné revízie sú vyčerpané."
+  - from: "R-001"
+    to: "SC-001-03"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Model od zákazníka je možné vytlačiť."
+  - from: "R-001"
+    to: "SC-001-04"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Model od zákazníka obsahuje chyby."
+  - from: "R-001"
+    to: "SC-001-05"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Úprava v rámci bezplatných revízií."
+  - from: "R-001"
+    to: "SC-001-06"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Použitie zdieľaného existujúceho modelu."
+  - from: "R-001"
+    to: "SC-001-07"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Nezdieľaný model sa nepoužije."
+  - from: "R-001"
+    to: "SC-001-08"
+    model: "—"
+    meaning: "Scenár overuje požiadavku: Schválený model neprejde kontrolou tlačiteľnosti."

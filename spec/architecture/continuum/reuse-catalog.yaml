@@ -1,15 +1,3 @@
-# =====================================================================
-# spec/architecture/continuum/reuse-catalog.yaml
-# Enterprise Continuum – katalóg ABB / SBB pre projekt PrintOnDemand.
-# Rozhodnutia (decision) uviedol autor projektu; UNKNOWN = údaj zatiaľ nie je známy.
-# relevant_to_R001 = či blok používa funkcionalita 3D model pre zákazku.
-# Zrelosť: všetky SBB sú už v prevádzke (AS-IS). TO-BE môže priniesť vlastnú aplikáciu
-# alebo rozhranie namiesto open-source riešenia, ak bude treba niečo pokročilejšie.
-# Vlastník (owner): manažér nad 3D modelármi (SH-Manager); ak nie je k dispozícii,
-# zodpovedá CEO (SH-ManagementCEO). Verzie a poskytovatelia, ktoré sa líšia podľa
-# krajiny, zostávajú UNKNOWN.
-# =====================================================================
-
 architecture_building_blocks:
   - id: "ABB-01"
     name: "Jednotný formát 3D modelov"

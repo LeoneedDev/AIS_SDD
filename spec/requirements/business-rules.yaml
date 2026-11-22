@@ -1,19 +1,13 @@
-# =====================================================================
-# spec/requirements/business-rules.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# Invariant musí platiť v každom platnom stave (aj pri retry, chybe, súbehu).
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-# =====================================================================
-
 business_rules:
   - id: "BR-001"
-    # ✍️ Кандидат из PRIN-001: «Do tlače smie ísť iba model so stavom schválenia approved.»
-    title: ""
+    title: "Tlačí sa iba model so súhlasom zákazníka"
     type: "invariant"
-    statement: ""
-    owner: null
+    statement: >
+      Do tlače smie ísť iba model so súhlasom zákazníka: pri VAR-1 model so stavom
+      schválenia "approved", pri VAR-2 nezmenený model dodaný zákazníkom (BR-008).
+    owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-01", "SC-001-05", "SC-001-08"]
 
   - id: "BR-002"
     title: "Dve bezplatné revízie, potom nový vývoj"
@@ -24,23 +18,21 @@ business_rules:
       záznam schválenia).
     owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-02", "SC-001-05"]
 
   - id: "BR-003"
     title: "Schválenie modelu zaznamenáva iba oprávnená osoba"
     type: "rule"
-    # ✍️ DRAFT z modelu. Potvrď znenie.
     statement: >
       Schválenie modelu udeľuje zákazník. Do systému ho zaznamená 3D modelár
       alebo manažér v Modeling Workspace na základe súhlasu zákazníka.
     owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-01"]
 
   - id: "BR-004"
     title: "Zmena objednávky iba pred tlačou"
     type: "rule"
-    # ✍️ DRAFT. Считается ли изменение модели до печати одной из 2 ревизий?
     statement: >
       Zákazník môže zmeniť alebo doplniť objednávku a model, kým objednávka
       neprešla do tlače. Po začatí tlače zmena nie je možná.
@@ -56,7 +48,7 @@ business_rules:
       opýtame, či chce, aby sme ho opravili. Bez jeho súhlasu model neupravujeme.
     owner: "SH-ManagementCEO"
     requirements: ["R-001"]
-    scenarios: ["SC-001-04"]
+    scenarios: ["SC-001-04", "SC-001-08"]
 
   - id: "BR-006"
     title: "Opätovné použitie modelu iba so súhlasom vlastníka"
@@ -67,7 +59,7 @@ business_rules:
       je zdieľanie predvolene vypnuté; ak ho povolia, môžu dostať zľavu.
     owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-06", "SC-001-07"]
 
   - id: "BR-007"
     title: "Model upravujú iba naši 3D modelári"
@@ -78,4 +70,16 @@ business_rules:
       urobí to vo vlastnom nástroji a pošle nový model (VAR-2).
     owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-05"]
+
+  - id: "BR-008"
+    title: "Nezmenený model zákazníka sa považuje za schválený"
+    type: "rule"
+    statement: >
+      Ak zákazník dodá vlastný model (VAR-2) a ten prejde kontrolou bez chýb,
+      považuje sa za schválený zákazníkom a ide priamo do tlače. Ak model na
+      žiadosť zákazníka upravíme (BR-005), upravený model musí zákazník schváliť
+      rovnako ako pri VAR-1.
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: ["SC-001-03"]

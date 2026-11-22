@@ -1,9 +1,3 @@
-# =====================================================================
-# spec/requirements/quality-requirements.yaml
-# Nie-funkčné požiadavky. Čísla NEODHADUJ – ak nie sú schválené, zapíš otvorenú otázku.
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-# =====================================================================
-
 quality_requirements:
   - id: "QR-001"
     category: "security / privacy (GDPR)"
@@ -15,8 +9,6 @@ quality_requirements:
     measure: >
       Objednávku možno vytvoriť a model schváliť bez zadania e-mailu aj telefónu;
       zákazník dostane notifikáciu o stave aspoň v účte.
-    # z modelu: Constraint "GDPR compliance" (EA #670), Contract "Privacy consent (GDPR)" (EA #825)
-    # ✍️ Владелец? Кандидат: SH-ManagementCEO.
     owner: null
     status: "draft"
     requirements: ["R-001"]

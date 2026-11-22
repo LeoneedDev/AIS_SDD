@@ -1,5 +1,4 @@
 application_components:
-  # ================= CESTA 1: model vytvoríme my =================
   - id: "AC-ModelingWorkspace"
     name: "Modeling Workspace"
     part_of_collaboration: "ACO-ModelPipeline"
@@ -10,12 +9,9 @@ application_components:
     provides_services: ["AS-ModellingOfComponent"]
     uses_services: ["AS-ModelStorage", "AS-InformingCustomer", "AS-ApprovingModel"]
     owns_data_objects: ["DO-ModelApproval"]
-    # ✍️ Кому может передавать данные. Flow в модели: → ModelValidator, ModelRepository,
-    # ✍️ CustomerPortal; ← OrderOrchestrator, ModelRepository, ModelValidator. Оставь нужные.
     allowed_dependencies: []
     requirements: ["R-001"]
 
-  # ================= CESTA 2: model dodá zákazník =================
   - id: "AC-ModelValidator"
     name: "Model Validator"
     part_of_collaboration: "ACO-ModelPipeline"
@@ -29,7 +25,6 @@ application_components:
     allowed_dependencies: ["AC-ModelingWorkspace"]
     requirements: ["R-001"]
 
-  # ================= partneri =================
   - id: "AC-ModelRepository"
     name: "Model Repository"
     responsibility: >
