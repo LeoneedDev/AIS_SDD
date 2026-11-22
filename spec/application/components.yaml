@@ -9,7 +9,7 @@ application_components:
     provides_services: ["AS-ModellingOfComponent"]
     uses_services: ["AS-ModelStorage", "AS-InformingCustomer", "AS-ApprovingModel"]
     owns_data_objects: ["DO-ModelApproval"]
-    allowed_dependencies: []
+    allowed_dependencies: ["AC-ModelValidator", "AC-ModelRepository", "AC-CustomerPortal", "AC-OrderOrchestrator", "AC-Notifier", "AC-Slicer"]
     requirements: ["R-001"]
 
   - id: "AC-ModelValidator"

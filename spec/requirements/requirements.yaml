@@ -20,7 +20,8 @@ requirements:
 constraints:
   - id: "C-001"
     statement: >
-      Tlačíme iba modely, ktoré sa dajú vytlačiť v rámci parametrov našich
-      tlačiarní (rozmer, materiál).
+      Tlačíme iba modely, ktoré sa dajú vytlačiť v rámci možností našich
+      tlačiarní. Ak je model príliš veľký, prijmeme ho, keď ho slicer dokáže
+      rozdeliť na časti, ktoré sa vytlačia samostatne a potom spoja (INT-009).
     owner: "SH-ManagementCEO"
     status: "draft"

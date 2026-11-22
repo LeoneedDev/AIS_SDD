@@ -2,18 +2,21 @@ contract_design_profile:
   status: "draft"
   approved_by: null
   http:
-    specification: null
+    style: "REST"
+    specification: "OpenAPI 3.1"
     naming:
-      paths: null
-      operation_ids: null
-    date_time: null
-    errors: null
-    correlation_id_header: null
+      paths: "kebab-case, podstatné mená v množnom čísle"
+      operation_ids: "lowerCamelCase"
+    date_time: "RFC 3339 UTC"
+    errors: "problem-details (RFC 9457)"
+    correlation_id_header: "X-Correlation-ID"
   events:
     specification: null
-    naming: null
+    note: "Asynchrónne udalosti sa zatiaľ nepoužívajú."
   security:
-    authentication: null
-    authorization: null
+    authentication: >
+      Bearer token. Frontend ho získa pri prihlásení (login a heslo, voliteľne
+      2FA) a posiela ho s každou požiadavkou na API.
+    authorization: "explicitne pre každú operáciu"
   compatibility:
     breaking_change: "human decision required"

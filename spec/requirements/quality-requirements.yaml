@@ -9,6 +9,6 @@ quality_requirements:
     measure: >
       Objednávku možno vytvoriť a model schváliť bez zadania e-mailu aj telefónu;
       zákazník dostane notifikáciu o stave aspoň v účte.
-    owner: null
+    owner: "SH-ManagementCEO"
     status: "draft"
     requirements: ["R-001"]

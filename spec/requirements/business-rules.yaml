@@ -13,8 +13,10 @@ business_rules:
     title: "Dve bezplatné revízie, potom nový vývoj"
     type: "rule"
     statement: >
-      Zákazník má k dispozícii 2 bezplatné revízie modelu. Ďalšia požadovaná úprava
-      sa už neúčtuje ako revízia, ale ako vývoj nového modelu (nová platba a nový
+      Revízia je úprava modelu, ktorú na žiadosť zákazníka urobia naši 3D modelári
+      (aj oprava chýb v modeli zákazníka pri VAR-2). Zákazník má k dispozícii
+      2 bezplatné revízie na oboch cestách. Ďalšia požadovaná úprava sa už
+      neúčtuje ako revízia, ale ako vývoj nového modelu (nová platba a nový
       záznam schválenia).
     owner: "SH-Manager"
     requirements: ["R-001"]
@@ -31,11 +33,14 @@ business_rules:
     scenarios: ["SC-001-01"]
 
   - id: "BR-004"
-    title: "Zmena objednávky iba pred tlačou"
+    title: "Vlastné zmeny zákazníka pred tlačou"
     type: "rule"
     statement: >
-      Zákazník môže zmeniť alebo doplniť objednávku a model, kým objednávka
-      neprešla do tlače. Po začatí tlače zmena nie je možná.
+      Zákazník môže pred tlačou sám nahrať nový model alebo zmeniť objednávku;
+      takáto zmena nie je revízia a je bezplatná, model sa iba znova overí.
+      Počet nových nahraní je obmedzený (príklad autora: 10). Po dosiahnutí limitu
+      sa zákazník musí rozhodnúť, či model tlačiť, alebo ďalšie zmeny zaplatí.
+      Po začatí tlače zmena nie je možná.
     owner: "SH-Manager"
     requirements: ["R-001"]
     scenarios: []

@@ -48,7 +48,7 @@ Súhlas zákazníka s konkrétnou revíziou modelu; v systéme ho reprezentuje a
 
 ## Revision (revízia modelu)
 
-Úprava modelu na žiadosť zákazníka po jeho posúdení. Prvé 2 revízie sú bezplatné; ďalšia úprava sa považuje za vývoj nového modelu a účtuje sa ako nová objednávka modelu (BR-002).
+Úprava modelu, ktorú na žiadosť zákazníka urobia naši 3D modelári (aj oprava chýb v modeli zákazníka). Prvé 2 revízie sú bezplatné; ďalšia úprava je vývoj nového modelu (BR-002). Ak zákazník sám nahrá nový model, nejde o revíziu (BR-004).
 
 - z modelu: Contract „General terms (2 free model revisions, 14-day complaint)“ (EA #823)
 - IDs: R-001
