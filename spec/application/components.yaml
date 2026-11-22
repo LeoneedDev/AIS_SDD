@@ -1,10 +1,9 @@
 # =====================================================================
 # spec/application/components.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 #
-# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
-#
-# Mapovanie ID → prvok v modeli Sparx EA (hlavné prvky, balík "Application Colaborations")
+# Mapovanie ID → prvok v modeli Sparx EA (balík "Application Colaborations")
 #   AC-ModelingWorkspace    = Application Component "Modeling Workspace"   EA #895   (cesta 1)
 #   AC-ModelValidator       = Application Component "Model Validator"      EA #894   (cesta 2)
 #   AC-ModelRepository      = Application Component "Model Repository"     EA #893
@@ -18,39 +17,30 @@
 #   AS-3DPrinting           = Application Service "3D printing"            EA #832
 #   AS-InformingCustomer    = Application Service "Informing and contacting customer" EA #907
 #   AS-OnlineOrdering       = Application Service "Online ordering & quoting" EA #831
-#   DO-3DModel, DO-ModelOrder, DO-PromptOrder = pozri data-objects.yaml
-#
-# Dve hlavné karty (cesta 1 a 2), ostatné sú partneri – stačí 1 veta zodpovednosti.
 # =====================================================================
 
 application_components:
   # ================= CESTA 1: model vytvoríme my =================
   - id: "AC-ModelingWorkspace"
     name: "Modeling Workspace"
-    # z modelu: ACO-ModelPipeline —Aggregation→ AC-ModelingWorkspace
     part_of_collaboration: "ACO-ModelPipeline"
-
-    # ✍️ ЗА ЧТО отвечает. Одна ответственность, без классов и фреймворков.
     responsibility: >
-      Отвечает за то чтобы у модельеров \
+      Отвечает за то чтобы у модельеров
       было пространство совсместное где можно выполнять работы по моедлированию
 
-
-    # z modelu: AC-ModelingWorkspace —Realization→ AS-ModellingOfComponent
+    # ✍️ NESÚLAD V MODELI: kópia v balíku "TO-BE (Target)" (EA #1051) realizuje aj
+    # ✍️ AS-ApprovingModel (C1341), originál #895 iba AS-ModellingOfComponent. Ktorá platí?
     provides_services: ["AS-ModellingOfComponent"]
 
-    # ✍️ Чьи сервисы использует — заполни после interactions.yaml (где он consumer).
+    # ✍️ Чьи сервисы использует — после interactions.yaml (где он consumer).
     uses_services: []
 
-    # z modelu: AC-ModelingWorkspace —Access read→ DO-PromptOrder (len čítanie)
-    # ✍️ РЕШЕНИЕ: владеет ли он каким-то Data Object (то есть только он его меняет)?
-    # ✍️ В модели write-доступа у него нет ни к одному Data Object.
+    # ✍️ Владеет ли он каким-то Data Object? В модели write-доступа нет ни к одному
+    # ✍️ (только read к DO-PromptOrder).
     owns_data_objects: []
 
-    # z modelu: Flow  AC-ModelingWorkspace → AC-ModelValidator, AC-ModelRepository, AC-CustomerPortal
-    #           Flow  AC-OrderOrchestrator, AC-ModelRepository, AC-ModelValidator → AC-ModelingWorkspace
-    # ✍️ РЕШЕНИЕ: каким компонентам он МОЖЕТ передавать данные или кого вызывать.
-    # ✍️ Оставь только нужные для этой функции.
+    # ✍️ Кому может передавать данные. Flow в модели: → ModelValidator, ModelRepository,
+    # ✍️ CustomerPortal; ← OrderOrchestrator, ModelRepository, ModelValidator. Оставь нужные.
     allowed_dependencies: []
 
     requirements: ["R-001"]
@@ -60,32 +50,26 @@ application_components:
     name: "Model Validator"
     part_of_collaboration: "ACO-ModelPipeline"
 
-    # ✍️ ЗА ЧТО отвечает. 1 предложение.
-    responsibility: >
+    # ✍️ За что отвечает. 1 предложение.
+    responsibility: ""
 
-
-    # z modelu: AC-ModelValidator —Realization→ AS-ApprovingModel
     provides_services: ["AS-ApprovingModel"]
 
     uses_services: []
 
-    # z modelu: AC-ModelValidator —Access read/write→ DO-3DModel
-    #           AC-ModelValidator —Access read→ DO-ModelOrder
-    # ✍️ РЕШЕНИЕ: он единственный, кто ПИШЕТ DO-3DModel. Значит, он владелец?
-    # ✍️ Если да — впиши "DO-3DModel". Если владелец другой — объясни в data-objects.yaml.
+    # ✍️ Он единственный пишет DO-3DModel (read/write). Он владелец? Тогда "DO-3DModel".
     owns_data_objects: []
 
-    # z modelu: Flow  AC-ModelValidator → AC-Slicer, AC-Notifier, AC-OrderOrchestrator, AC-ModelingWorkspace
-    #           Flow  AC-ModelingWorkspace → AC-ModelValidator
-    # ✍️ РЕШЕНИЕ: оставь только нужные.
+    # ✍️ Flow в модели: → Slicer, Notifier, OrderOrchestrator, ModelingWorkspace;
+    # ✍️ ← ModelingWorkspace. Оставь нужные.
     allowed_dependencies: []
 
     requirements: ["R-001"]
 
-  # ================= partneri (1 veta) =================
+  # ================= partneri =================
   - id: "AC-ModelRepository"
     name: "Model Repository"
-    # ✍️ 1 предложение. (В модели не реализует ни одного Application Service.)
+    # ✍️ 1 предложение. В модели не реализует ни одного Application Service.
     responsibility: ""
     provides_services: []
 
@@ -93,21 +77,18 @@ application_components:
     name: "Customer portal"
     # ✍️ 1 предложение.
     responsibility: ""
-    # z modelu: Realization → AS-InformingCustomer, AS-OnlineOrdering
     provides_services: ["AS-InformingCustomer", "AS-OnlineOrdering"]
 
   - id: "AC-OrderOrchestrator"
     name: "Order Orchestrator"
     # ✍️ 1 предложение.
     responsibility: ""
-    # z modelu: Realization → AS-OnlineOrdering
     provides_services: ["AS-OnlineOrdering"]
 
   - id: "AC-Notifier"
     name: "Notifier"
     # ✍️ 1 предложение.
     responsibility: ""
-    # z modelu: Realization → AS-InformingCustomer
     provides_services: ["AS-InformingCustomer"]
 
   - id: "AC-Slicer"
@@ -115,5 +96,4 @@ application_components:
     part_of_collaboration: "ACO-ModelPipeline"
     # ✍️ 1 предложение.
     responsibility: ""
-    # z modelu: Realization → AS-3DPrinting
     provides_services: ["AS-3DPrinting"]

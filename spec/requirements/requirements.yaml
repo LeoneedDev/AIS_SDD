@@ -1,12 +1,9 @@
 # =====================================================================
 # spec/requirements/requirements.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 #
-# ПОДСКАЗКИ: строки "# ✍️" — подсказки для тебя, после заполнения удали.
-#            "" и null — места, которые заполняешь ты.
-#            "# z modelu:" — факт из .qea, не меняй.
-#
-# Mapovanie ID → prvok v modeli Sparx EA (EA # = Object_ID v .qea)
+# Mapovanie ID → prvok v modeli Sparx EA
 #   R-001                    = Requirement "3D model approval (2 free revisions)"        EA #671
 #   G-001                    = Goal "Unique part made as a single piece"                 EA #665
 #   PRIN-001                 = Principle "Nothing is printed without customer approval"  EA #667
@@ -20,21 +17,15 @@ requirements:
   - id: "R-001"
     title: "3D model approval (2 free revisions)"
 
-    # ✍️ ЧТО система должна позволить / гарантировать. 1–2 предложения, без технологий.
-    # ✍️ Учти оба пути: модель делаем мы ИЛИ модель приносит клиент.
-    statement: >
+    # ✍️ ЧТО система должна позволить / гарантировать (оба пути: модель делаем мы / приносит клиент).
+    statement: ""
 
-
-    # ✍️ ПОЧЕМУ. Подсказка из модели: требование реализует принцип PRIN-001
-    # ✍️ («nič sa netlačí bez schválenia zákazníkom») и цель G-001.
-    # ✍️ Бизнес-контракт в модели: «General terms (2 free model revisions, 14-day complaint)» EA #823.
+    # ✍️ ПОЧЕМУ. Опора в модели: PRIN-001, G-001, Contract "General terms (2 free model revisions)" EA #823.
     rationale: ""
 
-    # z modelu: R-001 —Realization→ G-001
     source_goals: ["G-001"]
 
-    # ✍️ КТО отвечает за смысл требования. В модели владельца нет.
-    # ✍️ Кандидаты: Manager (EA #40), Management (CEO) (EA #47), 3D modeler (EA #45).
+    # ✍️ Владелец смысла. В модели нет. Кандидаты: Manager (#40), Management (CEO) (#47), 3D modeler (#45).
     owner: null
 
     # ✍️ "must" / "should" / "could"
@@ -42,27 +33,16 @@ requirements:
 
     status: "draft"
 
-    # z modelu: BS-3DModelingApproval —Realization→ R-001
-    #           cesta 1: AS-ModellingOfComponent ─Serving→ Junction ─Serving→ BP-ModelThePart
-    #           cesta 2: AS-ApprovingModel       ─Serving→ Junction ─Serving→ BP-ModelThePart
-    # ✍️ РЕШЕНИЕ: «2 бесплатные ревизии» относятся к пути 1 (моделируем мы), к пути 2
-    # ✍️ (модель клиента) или к обоим? Если только к одному — убери лишний AS ниже.
+    # ✍️ «2 бесплатные ревизии» — путь VAR-1, VAR-2 или оба? Если один — убери лишний AS.
     realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
 
-    # ✍️ ID Gherkin-сценариев (впишешь такие же в .feature). Предложение:
-    # ✍️   SC-001-01  cesta 1 – model vytvorený nami, zákazník ho schváli        (pozitívny)
-    # ✍️   SC-001-02  cesta 1 – vyčerpané bezplatné revízie                       (negatívny)
-    # ✍️   SC-001-03  cesta 2 – model od zákazníka je v poriadku                   (pozitívny)
-    # ✍️   SC-001-04  cesta 2 – model od zákazníka nie je možné vytlačiť          (negatívny)
-    # ✍️ Оставь те, что подходят, лишние удали.
+    # ✍️ Оставь подходящие сценарии (01/02 = VAR-1, 03/04 = VAR-2).
     acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04"]
 
 constraints:
-  # z modelu: C-001 —Realization→ G-001 aj PRIN-001
-  # ✍️ Относится ли это к функции? Например, проверка модели клиента (путь 2) может
-  # ✍️ проверять именно «влезет ли в наши принтеры». Если не относится — удали блок.
+  # ✍️ Относится ли C-001 к функции (например, проверка модели клиента = «влезет ли в наши принтеры»)?
+  # ✍️ Если нет — удали блок.
   - id: "C-001"
-    # ✍️ Что нельзя нарушить, своими словами.
     statement: ""
     owner: null
     status: "draft"

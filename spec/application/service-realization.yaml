@@ -1,47 +1,31 @@
 # =====================================================================
 # spec/application/service-realization.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-#
-# Textová verzia diagramu "Service Realization Viewpoint" (EA diagram #64).
-# Takmer všetko je z modelu; tvoj text je iba "condition" pri cestách a "note".
-# ID: pozri hlavičky actors-processes.yaml, components.yaml a data-objects.yaml.
+# Textová verzia diagramu "Service Realization Viewpoint" (EA diagram D64).
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 # =====================================================================
 
 service_realization:
   - business_service: "BS-3DModelingApproval"
-
-    # z modelu: BS-3DModelingApproval —Serving→ ACT-Clients
     used_by_roles: ["ACT-Clients"]
-
-    # z modelu: BP-ModelThePart —Realization→ BS-3DModelingApproval
     realized_by_business_processes: ["BP-ModelThePart"]
-
-    # z modelu: oba služby slúžia procesu cez Junction "Who provides model?" (EA #1093)
     supported_by_application_services:
       - "AS-ModellingOfComponent"
       - "AS-ApprovingModel"
-
     provided_by_components:
       - "AC-ModelingWorkspace"
       - "AC-ModelValidator"
-
-    # z modelu: AS-3DPrinting —Composition→ AS-ModellingOfComponent, AS-ApprovingModel
     part_of_application_service: "AS-3DPrinting"
 
-    # z modelu: Junction "Who provides model?"
-    #   AS-ModellingOfComponent ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
-    #   AS-ApprovingModel       ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
-    # ⚠ V modeli má junction junctionKind = AND. Pre "buď–alebo" má byť OR.
     alternative_paths:
       junction: "JN-WhoProvidesModel"
-      junction_kind_in_model: "AND"   # ✍️ po oprave v EA zmeň na "OR"
+      # ✍️ V EA je junctionKind = AND, pre "buď–alebo" má byť OR. Po oprave zmeň.
+      junction_kind_in_model: "AND"
       paths:
         - id: "VAR-1"
           name: "Model vytvoríme my"
           application_service: "AS-ModellingOfComponent"
-          # z modelu: AC-ModelingWorkspace —Realization→ AS-ModellingOfComponent
           component: "AC-ModelingWorkspace"
-          # z modelu: AC-ModelingWorkspace —Access read→ DO-PromptOrder
           data_objects: ["DO-PromptOrder"]
           # ✍️ Когда выбирается (то же, что в actors-processes.yaml → variants).
           condition: ""
@@ -49,17 +33,12 @@ service_realization:
         - id: "VAR-2"
           name: "Model dodá zákazník"
           application_service: "AS-ApprovingModel"
-          # z modelu: AC-ModelValidator —Realization→ AS-ApprovingModel
           component: "AC-ModelValidator"
-          # z modelu: AC-ModelValidator —Access read→ DO-ModelOrder
-          #           AC-ModelValidator —Access read/write→ DO-3DModel
           data_objects: ["DO-ModelOrder", "DO-3DModel"]
+          # ✍️ Когда выбирается.
           condition: ""
 
     requirements: ["R-001"]
 
-    # ✍️ По желанию: 1–2 предложения, как приложение помогает бизнес-сервису.
+    # ✍️ Voliteľné: 1–2 vety, ako aplikácia pomáha business službe.
     note: ""
-
-    # Zdroj: diagram "Service Realization Viewpoint", "Aplication Usage Viewpoint",
-    #        "Business Process Cooperation Viewpoint"

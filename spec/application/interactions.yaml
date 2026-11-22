@@ -1,22 +1,14 @@
 # =====================================================================
 # spec/application/interactions.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+# Zdroj: Flow z/do Modeling Workspace a Model Validator ("Application Cooperation
+# Viewpoint" D50). Flow v modeli NEMAJÚ názov – čo sa prenáša, dopĺňaš ty.
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 #
-# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
-#
-# Odkiaľ to je: všetky Flow v modeli z/do Modeling Workspace a Model Validator
-# (diagram "Application Cooperation Viewpoint"). Flow v modeli NEMAJÚ názov,
-# takže čo sa prenáša, model neurčuje — dopĺňaš ty.
-#
-# Как заполнять:
-#   consumer  — кто ИСПОЛЬЗУЕТ сервис (вызывает / отправляет запрос)
-#   provider  — кто ПРЕДОСТАВЛЯЕТ сервис
-#   uses_application_service — сервис провайдера (provides_services в components.yaml)
-#   information — Data Objects. Кандидаты: DO-3DModel, DO-ModelOrder, DO-PromptOrder,
-#       DO-Order, DO-ModelingTask (EA #969), DO-Notification (EA #968), DO-GCode (EA #967)
-#   communication_style — "undecided", пока не решишь API vs event
-#
-# ✍️ Взаимодействие, которое не нужно для этой функции, удали целиком.
+#   consumer — kto služby používa; provider — kto ju poskytuje
+#   information — kandidáti: DO-3DModel, DO-ModelOrder, DO-PromptOrder, DO-Order,
+#       DO-ModelingTask (#969), DO-Notification (#968), DO-GCode (#967), DO-Exception (#1024)
+#   communication_style — "undecided", kým nerozhodneš API vs event
 # =====================================================================
 
 interactions:
@@ -24,8 +16,9 @@ interactions:
   - id: "INT-001"
     path: "VAR-1"
     flow_in_model: "AC-OrderOrchestrator → AC-ModelingWorkspace"
-    # z modelu aj: AC-OrderOrchestrator —Access write→ DO-ModelingTask
-    # ✍️ Это старт пути 1 (заказ передаётся в моделирование)? Кто consumer/provider?
+    # ✍️ Старт пути 1? Модель подсказывает: "Model Intake" (#1014, часть Model Pipeline)
+    # ✍️ —Serving→ Order Orchestrator, читает DO-ModelingTask и DO-3DModel.
+    # ✍️ Значит consumer = AC-OrderOrchestrator, provider = ACO-ModelPipeline? Подтверди.
     consumer: null
     provider: null
     uses_application_service: null
@@ -37,7 +30,7 @@ interactions:
   - id: "INT-002"
     path: "VAR-1"
     flow_in_model: "AC-ModelingWorkspace → AC-ModelRepository"
-    # ✍️ Сохранение модели? Model Repository не реализует ни одного сервиса в модели.
+    # ✍️ Сохранение модели? Model Repository не реализует ни одного сервиса — какой сервис тут?
     consumer: null
     provider: null
     uses_application_service: null
@@ -61,8 +54,8 @@ interactions:
   - id: "INT-004"
     path: "VAR-1"
     flow_in_model: "AC-ModelingWorkspace → AC-CustomerPortal"
-    # ✍️ Модель показывается клиенту на одобрение? Customer portal реализует
-    # ✍️ AS-InformingCustomer и AS-OnlineOrdering — какой из них используется?
+    # ✍️ Модель показывается клиенту на одобрение? Какой сервис портала:
+    # ✍️ AS-InformingCustomer или AS-OnlineOrdering?
     consumer: null
     provider: null
     uses_application_service: null
@@ -75,9 +68,9 @@ interactions:
   - id: "INT-005"
     path: "VAR-1 / VAR-2"
     flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
-    # ✍️ Модель, сделанная нами, тоже проходит проверку Model Validator?
-    # ✍️ Если да — consumer = AC-ModelingWorkspace, provider = AC-ModelValidator,
-    # ✍️ uses_application_service = AS-ApprovingModel.
+    # ✍️ Наша модель тоже проходит проверку Model Validator? Если да: consumer =
+    # ✍️ AC-ModelingWorkspace, provider = AC-ModelValidator, сервис = AS-ApprovingModel.
+    # ✍️ Связано с несоответствием TO-BE (#1051) в components.yaml.
     consumer: null
     provider: null
     uses_application_service: null
@@ -89,7 +82,7 @@ interactions:
   - id: "INT-006"
     path: "VAR-1 / VAR-2"
     flow_in_model: "AC-ModelValidator → AC-ModelingWorkspace"
-    # ✍️ Возврат на доработку? Или переход из VAR-2 в VAR-1, если модель клиента плохая?
+    # ✍️ Возврат на доработку? Или переход VAR-2 → VAR-1, если модель клиента плохая?
     consumer: null
     provider: null
     uses_application_service: null
@@ -102,8 +95,8 @@ interactions:
   - id: "INT-007"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-Notifier"
-    # z modelu: AC-Notifier —Realization→ AS-InformingCustomer
-    # ✍️ Проверь: Model Validator через Notifier сообщает клиенту результат проверки?
+    # ✍️ Подтверди: Model Validator через Notifier сообщает клиенту результат проверки?
+    # ✍️ (В модели "Notification API" #1016 —Serving→ Model Pipeline, пишет DO-Notification.)
     consumer: "AC-ModelValidator"
     provider: "AC-Notifier"
     uses_application_service: "AS-InformingCustomer"
@@ -115,8 +108,9 @@ interactions:
   - id: "INT-008"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-OrderOrchestrator"
-    # z modelu: AC-OrderOrchestrator —Realization→ AS-OnlineOrdering
-    # ✍️ Сообщает, что модель одобрена и заказ может идти дальше?
+    # ✍️ Сообщает, что модель одобрена и заказ идёт дальше? Или ошибку?
+    # ✍️ (В модели "Event handler" #972 Order Orchestrator —Serving→ Model Pipeline,
+    # ✍️ читает DO-Exception, который пишет Model Pipeline.)
     consumer: null
     provider: null
     uses_application_service: null
@@ -128,7 +122,7 @@ interactions:
   - id: "INT-009"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-Slicer"
-    # ✍️ Относится к одобрению или это уже следующий шаг (печать)? Если печать — удали.
+    # ✍️ Это одобрение или уже печать? Если печать — удали.
     consumer: null
     provider: null
     uses_application_service: null
@@ -140,11 +134,8 @@ interactions:
   # ================= KANÁL ZÁKAZNÍKA =================
   - id: "INT-010"
     path: "VAR-1 / VAR-2"
-    # z modelu: AC-CustomerPortal —Composition→ "Modeler chat" (Application Interface, EA #1031)
-    #           "Modeler chat" —Serving→ ACO-ModelPipeline
-    flow_in_model: "Customer portal → Modeler chat → Model Pipeline"
-    # ✍️ РЕШЕНИЕ: через это клиент даёт описание (VAR-1), загружает свою модель (VAR-2)
-    # ✍️ и/или одобряет модель? Опиши, что из этого.
+    flow_in_model: "Customer portal → Modeler chat (#1031) → Model Pipeline"
+    # ✍️ Через это клиент даёт описание (VAR-1), загружает модель (VAR-2) и/или одобряет?
     consumer: null
     provider: null
     uses_application_service: null

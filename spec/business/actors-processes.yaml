@@ -1,8 +1,7 @@
 # =====================================================================
 # spec/business/actors-processes.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-#
-# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 #
 # Mapovanie ID → prvok v modeli Sparx EA
 #   ACT-Clients               = Business Actor "Clients"                        EA #127
@@ -24,65 +23,53 @@ actors_roles:
   - id: "ACT-Clients"
     name: "Clients"
     type: "Business Actor"
-    # z modelu: BS-3DModelingApproval —Serving→ ACT-Clients
-    # ✍️ Что делает клиент в ЭТОМ процессе: в пути 1 — даёт описание и одобряет,
-    # ✍️ в пути 2 — приносит свою модель. 1–2 предложения.
+    # ✍️ Что делает клиент: VAR-1 — даёт описание и одобряет, VAR-2 — приносит свою модель.
     responsibility: ""
 
   - id: "ACT-3DModeler"
     name: "3D modeler"
     type: "Business Actor"
-    # z modelu: ACT-3DModeler —Assignment→ BP-ModelThePart (celý proces, obe cesty)
-    # ✍️ Что делает моделлер в пути 1 и что в пути 2. 1–2 предложения.
+    # ✍️ Что делает моделлер в VAR-1 и в VAR-2.
     responsibility: ""
 
 business_objects:
   - id: "BO-3DModel"
     name: "3D model"
-    # z modelu: BP-ModelThePart —Access write→ BO-3DModel
-    #           BP-PrintAndCheckQuality —Access read→ BO-3DModel
-    # ✍️ Что такое 3D-модель для бизнеса (смысл, не файл). 1 предложение.
+    # ✍️ Смысл для бизнеса (не файл).
     meaning: ""
 
   - id: "BO-Order"
     name: "Order"
-    # z modelu: BO-Order —Association→ BO-3DModel
-    # ✍️ Что такое заказ для бизнеса. 1 предложение.
+    # ✍️ Смысл для бизнеса. В модели: Meaning "Customer commitment to buy one custom part" (#1019).
     meaning: ""
 
 processes:
   - id: "BP-ModelThePart"
     name: "Model the part"
-    # z modelu: BP-HandleCustomPartOrder —Composition→ BP-ModelThePart
     part_of: "BP-HandleCustomPartOrder"
-    # z modelu: ACT-3DModeler —Assignment→ BP-ModelThePart
     owner: "ACT-3DModeler"
 
-    # ✍️ С ЧЕГО начинается. Подсказка: Flow «paid order» приходит из BP-AssessRequestAndQuote.
+    # ✍️ С чего начинается. В модели: Flow «paid order» из BP-AssessRequestAndQuote.
     trigger: ""
 
     # ✍️ Что должно быть правдой до начала (заказ оплачен, …).
     preconditions:
       - ""
 
-    # ✍️ ОБЩИЕ шаги для обоих путей. Первый шаг — определить, кто даёт модель
-    # ✍️ (это Junction «Who provides model?»), последний — передать одобренную модель дальше.
+    # ✍️ Общие шаги: определить, кто даёт модель (Junction) … передать одобренную модель дальше.
     main_flow:
       - ""
       - ""
 
-    # z modelu: Junction "Who provides model?" (EA #1093), poznámka v Notes:
-    #   "If model is user provided we dont need create it or recreate it, only approve
-    #    that this model is ok, and user also can ask us to create model for him based
-    #    on description or schemas"
+    # Notes z Junction (EA #1093): "If model is user provided we dont need create it or
+    # recreate it, only approve that this model is ok, and user also can ask us to create
+    # model for him based on description or schemas"
     variants:
       - id: "VAR-1"
         name: "Model vytvoríme my"
-        # z modelu: AS-ModellingOfComponent ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
-        #           dáta: DO-PromptOrder (popis od zákazníka)
-        # ✍️ КОГДА выбирается этот путь (условие).
+        # ✍️ Когда выбирается этот путь.
         condition: ""
-        # ✍️ Шаги пути: кто что делает, включая одобрение клиентом и ревизии.
+        # ✍️ Шаги: кто что делает, включая одобрение клиентом и ревизии.
         steps:
           - ""
           - ""
@@ -90,29 +77,21 @@ processes:
 
       - id: "VAR-2"
         name: "Model dodá zákazník"
-        # z modelu: AS-ApprovingModel ─Serving→ JN-WhoProvidesModel ─Serving→ BP-ModelThePart
-        #           dáta: DO-ModelOrder (objednávka s modelom zákazníka)
-        # ✍️ КОГДА выбирается этот путь.
+        # ✍️ Когда выбирается этот путь.
         condition: ""
         # ✍️ Шаги: проверка модели клиента и что дальше.
         steps:
           - ""
           - ""
 
-    # ✍️ Исключения, которые МЕНЯЮТ результат. Отметь, к какому пути относятся.
-    # ✍️ Идеи: (VAR-1) клиент отклонил модель / кончились бесплатные ревизии;
-    # ✍️       (VAR-2) модель клиента нельзя напечатать — что тогда? Перейти на VAR-1?
-    # ✍️       (обе) клиент не отвечает.
+    # ✍️ Исключения, меняющие результат: клиент отклонил / кончились ревизии (VAR-1);
+    # ✍️ модель клиента нельзя напечатать — переход на VAR-1? (VAR-2); клиент не отвечает.
     exceptions:
       - ""
 
-    # ✍️ Чем заканчивается. Подсказка: Flow «approved 3D model» → BP-PrintAndCheckQuality.
+    # ✍️ Чем заканчивается. В модели: Flow «approved 3D model» → BP-PrintAndCheckQuality.
     outcome: ""
 
-    # z modelu: BP-ModelThePart —Realization→ BS-3DModelingApproval
     provides_business_services: ["BS-3DModelingApproval"]
-
-    # z modelu: BP-ModelThePart —Access write→ BO-3DModel
     business_objects: ["BO-3DModel"]
-
     requirements: ["R-001"]

@@ -1,6 +1,7 @@
 # =====================================================================
 # spec/manifest.yaml – obsah specification package
 # Cesty sú relatívne ku koreňu repozitára. null = podklad nie je dodaný.
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 # =====================================================================
 
 specification:
@@ -16,7 +17,7 @@ governance:
   ai_rules: ".agents/rules.md"
 
 authoritative:
-  architecture_model: null   # model zostáva v Sparx EA u tímu
+  architecture_model: null
   glossary: "spec/glossary.md"
   requirements: "spec/requirements/requirements.yaml"
   business_rules: "spec/requirements/business-rules.yaml"
@@ -41,17 +42,18 @@ authoritative:
   gap_analysis: "spec/architecture/migration/gap-analysis.md"
 
 supporting:
-  # ✍️ Pre každý exportovaný obrázok zo Sparx EA pridaj položku.
-  # ✍️ Kandidáti (diagramy použité v spec/): Layered, Application Usage,
-  # ✍️ Application Cooperation, Service Realization, Business Process Cooperation.
-  # ✍️ status zmeň na "approved" až po porovnaní s modelom; reviewed_by = meno/rola.
+  # ✍️ Exportuj z EA ako PNG a pridaj položky: D52 Layered, D64 Service Realization,
+  # ✍️ D51 Application Usage, D50 Application Cooperation, D54 Application Structure,
+  # ✍️ D47 Business Process Cooperation, D60 Information Structure, D48 Requirements Realization,
+  # ✍️ D38 Technology usage (ak technology_context = applicable).
+  # ✍️ status "approved" až po porovnaní s modelom; reviewed_by = meno/rola.
   architecture_views: []
   #  - path: "spec/architecture/views/B-01-layered.png"
   #    viewpoint: "Layered"
   #    model_baseline: "B-01"
   #    status: "draft"
   #    reviewed_by: null
-  architecture_context: null   # voliteľný ručný súhrn, nie export
+  architecture_context: null
 
 working:
   proposed_contracts: "spec/contracts/proposed/"

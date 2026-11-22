@@ -1,16 +1,53 @@
 # =====================================================================
 # spec/technology/technology-context.yaml
-# Vyplň iba ak System Software / Technology Service ovplyvňuje code, config
-# alebo deployment tejto funkcie. AI nesmie sama zapísať "not applicable".
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
+#
+# Mapovanie ID → prvok v modeli Sparx EA (D37, D38)
+#   NODE-SlicingScanProcessing = Node "Slicing and Scan Processing"                 EA #724
+#   NODE-WebApiServer          = Node "Web and API server"                           EA #734
+#   SSW-CAD                    = System Software "CAD"                               EA #741
+#   DEV-StrongGPU              = Device "Strong GPU"                                 EA #743
+#   TS-CadModeling             = Technology Service "Tech service: Cad modeling, gpu, 3d scans" EA #1076
+#   TS-WebApiDbHosting         = Technology Service "Tech service: Web server hosting and API hosting and Database hosting" EA #1073
+#   ACO-OrderManagementSystem  = Application Collaboration "Order Management System" EA #1029
 # =====================================================================
 
 technology_context:
-  # ✍️ "applicable" / "not applicable"
+  # ✍️ "applicable" / "not applicable"? Model Pipeline (Modeling Workspace + Model Validator)
+  # ✍️ obsluhuje TS-CadModeling. Rozhodne človek, nie AI.
   status: null
   reason: ""
-  # ✍️ Pri "not applicable" – kto to potvrdil (napr. "Solution Architect").
   confirmed_by_role: null
 
-nodes: []
-system_software: []
-technology_services: []
+nodes:
+  - id: "NODE-SlicingScanProcessing"
+    name: "Slicing and Scan Processing"
+    realizes_services: ["TS-CadModeling"]
+
+  - id: "NODE-WebApiServer"
+    name: "Web and API server"
+    realizes_services: ["TS-WebApiDbHosting"]
+
+system_software:
+  - id: "SSW-CAD"
+    name: "CAD"
+    # ✍️ V EA je CAD len vizuálne vnorený do uzla – ArchiMate väzba chýba. Doplniť v EA?
+    host_node: "NODE-SlicingScanProcessing"
+    # ✍️ Konkrétny CAD produkt a verzia – iba cez ADR.
+    product: null
+
+devices:
+  - id: "DEV-StrongGPU"
+    name: "Strong GPU"
+    # ✍️ Rovnako: len vizuálne vnorenie, väzba v EA chýba.
+    host_node: "NODE-SlicingScanProcessing"
+
+technology_services:
+  - id: "TS-CadModeling"
+    name: "Tech service: Cad modeling, gpu, 3d scans"
+    used_by: ["ACO-ModelPipeline"]
+
+  - id: "TS-WebApiDbHosting"
+    name: "Tech service: Web server hosting and API hosting and Database hosting"
+    used_by: ["ACO-OrderManagementSystem"]

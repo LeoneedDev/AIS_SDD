@@ -1,9 +1,8 @@
 # =====================================================================
 # spec/requirements/business-rules.yaml
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-#
-# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
 # Invariant musí platiť v každom platnom stave (aj pri retry, chybe, súbehu).
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 # =====================================================================
 
 business_rules:
@@ -17,7 +16,7 @@ business_rules:
     scenarios: []
 
   - id: "BR-002"
-    # ✍️ Кандидат: лимит 2 бесплатных ревизий (путь VAR-1?). Что после лимита?
+    # ✍️ Лимит 2 бесплатных ревизий (Contract EA #823). Только VAR-1? Что после лимита?
     title: ""
     # ✍️ "invariant" / "rule"
     type: null

@@ -1,5 +1,8 @@
 # =====================================================================
 # spec/technology/deployment.yaml
+# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
+#
 # Mapovanie ID → prvok v modeli Sparx EA
 #   ART-PartModelFile = Artifact "Part model file (.stl)" EA #1022
 # =====================================================================
@@ -7,7 +10,10 @@
 artifacts:
   - id: "ART-PartModelFile"
     name: "Part model file (.stl)"
-    # ✍️ Что реализует этот артефакт по модели? Не угадывай – смотри EA.
-    realizes: null
+    realizes: "DO-3DModel"
+    # ✍️ Kde je súbor uložený / nasadený? Väzba na Node v modeli chýba.
     deployed_on: null
     uses_technology_services: []
+
+# ✍️ Deployable artifact pre AC-ModelingWorkspace / AC-ModelValidator v modeli nie je.
+# ✍️ Ak je súčasťou zadania, treba ho doplniť do modelu.

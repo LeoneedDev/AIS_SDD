@@ -1,17 +1,67 @@
 # =====================================================================
 # spec/architecture/migration/implementation-context.yaml
-# Plateaus, Work Packages a Deliverables z modelu. Bez MD, ceny a harmonogramu.
-# Neschválené položky označ ako návrh s otvorenou otázkou.
+# Zdroj: "Implementation and Migration Viewpoint" (D63). Bez MD, ceny a harmonogramu.
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
+#
+# Mapovanie ID → prvok v modeli Sparx EA
+#   PL-ASIS       = Plateau "AS-IS: Current order platform ..."      EA #1078
+#   PL-TRANSITION = Plateau "Transition: B2B accounts, invoicing ..." EA #1079
+#   PL-TOBE       = Plateau "TO-BE: Complete order platform ..."      EA #1080
+#   WP-001..004   = Work Packages        EA #1085, #1086, #1087, #1088
+#   D-001..004    = Deliverables         EA #1081, #1082, #1083, #1084
+#   IE-001..003   = Implementation Events EA #1089, #1090, #1091
 # =====================================================================
 
 implementation:
-  # ✍️ ID Plateau z modelu (AS-IS / TO-BE).
-  current_plateau: null
-  target_plateau: null
-  work_packages: []
-  #  - id: "WP-..."
-  #    name: ""
-  #    delivers: []
-  #    realizes_requirements: ["R-001"]
-  #    status: "proposed"
-  deliverables: []
+  current_plateau: "PL-ASIS"
+  transition_plateau: "PL-TRANSITION"
+  target_plateau: "PL-TOBE"
+
+  # ✍️ R-001 nie je priradený žiadnemu Work Package ani Gap. Patrí funkcia do PL-ASIS
+  # ✍️ (už existuje), alebo Work Package chýba?
+  feature_scope_note: null
+
+  # ✍️ Všetky prvky majú v EA status "Proposed" – sú schválené?
+  work_packages:
+    - id: "WP-001"
+      name: "Implement company accounts and invoicing"
+      delivers: ["D-001"]
+      status: "proposed"
+    - id: "WP-002"
+      name: "Implement automatic quote pricing"
+      delivers: ["D-002"]
+      status: "proposed"
+    - id: "WP-003"
+      name: "Implement complaint handling and reprint"
+      delivers: ["D-003"]
+      status: "proposed"
+    - id: "WP-004"
+      name: "Implement material stock tracking"
+      delivers: ["D-004"]
+      status: "proposed"
+
+  deliverables:
+    - id: "D-001"
+      name: "Account management and Billing component deployed (company accounts, invoices)"
+      realizes: "Acount managemement and Billing (AC, EA #1062)"
+      plateau: "PL-TRANSITION"
+    - id: "D-002"
+      name: "Pricing Engine deployed (automatic quote calculation)"
+      realizes: "Pricing Engine (AC, EA #1061)"
+      plateau: "PL-TRANSITION"
+    - id: "D-003"
+      name: "Complaint handling and reprint flow in operation (14-day complaints)"
+      realizes: "Complaint handling & reprint (BS, EA #827)"
+      plateau: "PL-TOBE"
+    - id: "D-004"
+      name: "Materials Inventory component deployed (stock and consumption tracking)"
+      realizes: "Materials Inventory (AC, EA #1060)"
+      plateau: "PL-TOBE"
+
+  implementation_events:
+    - id: "IE-001"
+      name: "Gap analysis and change packages approved"
+    - id: "IE-002"
+      name: "Transition plateau accepted"
+    - id: "IE-003"
+      name: "Target platform accepted"

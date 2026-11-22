@@ -1,29 +1,68 @@
 # =====================================================================
 # spec/traceability/traceability.yaml
 # Pole "meaning" je zámerne ľudské – vysvetľuje, PREČO sú prvky prepojené.
-# Väzby nižšie sú prevzaté z existujúcich spec/ súborov (z modelu).
+# "model" = ArchiMate väzba v Sparx EA, z ktorej trace pochádza.
 # =====================================================================
 
 traces:
-  - from: "G-001"
-    to: "R-001"
-    meaning: "Goal je spresnený Requirementom."
+  # ---------- motivácia ----------
   - from: "R-001"
-    to: "BP-ModelThePart"
-    meaning: "Requirement mení správanie procesu."
+    to: "G-001"
+    model: "Realization (EA C1041)"
+    meaning: "Requirement prispieva k cieľu jedinečného dielu vyrobeného ako jeden kus."
+  - from: "R-001"
+    to: "PRIN-001"
+    model: "Realization (EA C716)"
+    meaning: "Requirement napĺňa princíp: nič sa netlačí bez schválenia zákazníkom."
+  - from: "C-001"
+    to: "PRIN-001"
+    model: "Realization (EA C718)"
+    meaning: "Obmedzenie na vlastné tlačiarne patrí k tomu istému princípu."
+
+  # ---------- business ----------
+  - from: "BS-3DModelingApproval"
+    to: "R-001"
+    model: "Realization (EA C1031)"
+    meaning: "Business Service realizuje Requirement."
   - from: "BP-ModelThePart"
     to: "BS-3DModelingApproval"
+    model: "Realization (EA C1020)"
     meaning: "Process realizuje Business Service."
-  - from: "BP-ModelThePart"
-    to: "AS-ModellingOfComponent"
-    meaning: "Process používa Application Service (cesta VAR-1)."
-  - from: "BP-ModelThePart"
-    to: "AS-ApprovingModel"
-    meaning: "Process používa Application Service (cesta VAR-2)."
+  - from: "BS-3DModelingApproval"
+    to: "ACT-Clients"
+    model: "Serving (EA C1129)"
+    meaning: "Služba slúži zákazníkovi."
+  - from: "ACT-3DModeler"
+    to: "BP-ModelThePart"
+    model: "Assignment (EA C1007)"
+    meaning: "3D modelár vykonáva proces."
+
+  # ---------- application ----------
   - from: "AS-ModellingOfComponent"
-    to: "AC-ModelingWorkspace"
-    meaning: "Component realizuje Application Service."
+    to: "BP-ModelThePart"
+    model: "Serving cez JN-WhoProvidesModel (EA C1073, C1450)"
+    meaning: "Process používa Application Service (cesta VAR-1)."
   - from: "AS-ApprovingModel"
-    to: "AC-ModelValidator"
+    to: "BP-ModelThePart"
+    model: "Serving cez JN-WhoProvidesModel (EA C1074, C1450)"
+    meaning: "Process používa Application Service (cesta VAR-2)."
+  - from: "AC-ModelingWorkspace"
+    to: "AS-ModellingOfComponent"
+    model: "Realization (EA C1401)"
     meaning: "Component realizuje Application Service."
+  - from: "AC-ModelValidator"
+    to: "AS-ApprovingModel"
+    model: "Realization (EA C1402)"
+    meaning: "Component realizuje Application Service."
+
+  # ---------- data ----------
+  - from: "DO-3DModel"
+    to: "BO-3DModel"
+    model: "Realization (EA C1247)"
+    meaning: "Aplikačná informácia reprezentuje business objekt 3D model."
+  - from: "ART-PartModelFile"
+    to: "DO-3DModel"
+    model: "Realization (EA C1243)"
+    meaning: "Súbor .stl je technická podoba 3D modelu."
+
   # ✍️ Po doplnení scenárov a contractu pridaj R-001 → SC-001-0x a operation → scenario.
