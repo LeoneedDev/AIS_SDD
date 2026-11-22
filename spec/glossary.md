@@ -5,7 +5,7 @@ Riadky „z modelu“ citujú prvok zo Sparx EA; definíciu vlastnými slovami p
 
 ## Order (zákazka)
 
-✍️ definícia (1–2 vety)
+Objednávka (požiadavka) zákazníka na jeden diel na mieru; patrí k nej model, kontaktné údaje zákazníka a informácie o platbe.
 
 - z modelu: Meaning „Customer commitment to buy one custom part“ (EA #1019) —Association→ BO-Order
 - z modelu: Representation „Order confirmation (PDF / e-mail)“ (EA #1020) —Realization→ BO-Order
@@ -14,7 +14,7 @@ Riadky „z modelu“ citujú prvok zo Sparx EA; definíciu vlastnými slovami p
 
 ## Prompt order
 
-✍️ definícia
+Objednávka, v ktorej zákazník dodá iba popis alebo schémy dielu; model vytvoríme my (VAR-1).
 
 - z modelu: Junction „Who provides model?“ (EA #1093), Notes: „user also can ask us to create model for him based on description or schemas“
 - z modelu: DO-PromptOrder —Specialization→ DO-Order
@@ -22,7 +22,7 @@ Riadky „z modelu“ citujú prvok zo Sparx EA; definíciu vlastnými slovami p
 
 ## Model order
 
-✍️ definícia
+Objednávka, v ktorej zákazník dodá hotový 3D model; model iba overíme (VAR-2).
 
 - z modelu: Junction „Who provides model?“, Notes: „If model is user provided we dont need create it or recreate it, only approve that this model is ok“
 - z modelu: DO-ModelOrder —Specialization→ DO-Order, —Aggregation→ DO-3DModel
@@ -30,7 +30,7 @@ Riadky „z modelu“ citujú prvok zo Sparx EA; definíciu vlastnými slovami p
 
 ## 3D model
 
-✍️ definícia
+Súbor 3D modelu dielu spolu s informáciami potrebnými pre 3D tlač (metadáta, rozmery).
 
 - z modelu: Value „Part matches the approved model“ (EA #822)
 - z modelu: ART-PartModelFile „Part model file (.stl)“ —Realization→ DO-3DModel
@@ -39,15 +39,18 @@ Riadky „z modelu“ citujú prvok zo Sparx EA; definíciu vlastnými slovami p
 
 ## Model approval (schválenie modelu)
 
-✍️ definícia
+Súhlas zákazníka s konkrétnou revíziou modelu; v systéme ho reprezentuje aktuálny stav schválenia a história revízií.
 
 - z modelu: Principle „Nothing is printed without customer approval“ (EA #667)
 - z modelu: Value Stream stage „Approve the model“ (VS-01.4, EA #100)
-- IDs: PRIN-001, AS-ApprovingModel
+- z modelu: Data Object „Model approval“ (EA #1113) —Association→ DO-3DModel
+- z modelu: Business Process „Approve the model“ (EA #1115) – Clients, 3D modeler, Manager (Assignment)
+- IDs: PRIN-001, BP-ApproveTheModel, AS-ApprovingModel, DO-ModelApproval
+- Nezamieňať: technická kontrola modelu (AS-ApprovingModel, Model Validator) ≠ súhlas zákazníka
 
 ## Revision (revízia modelu)
 
-✍️ Čo sa počíta ako revízia a kedy sa bezplatná revízia minie.
+Úprava modelu na žiadosť zákazníka po jeho posúdení. Prvé 2 revízie sú bezplatné; ďalšia úprava sa považuje za vývoj nového modelu a účtuje sa ako nová objednávka modelu (BR-002).
 
 - z modelu: Contract „General terms (2 free model revisions, 14-day complaint)“ (EA #823)
 - IDs: R-001

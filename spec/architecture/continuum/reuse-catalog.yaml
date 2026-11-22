@@ -1,20 +1,214 @@
 # =====================================================================
 # spec/architecture/continuum/reuse-catalog.yaml
-# Kandidáti z vlastného architektonického projektu. Ak nič nepreberáte,
-# zapíš to – nevymýšľaj dodávateľa ani organizáciu.
+# Enterprise Continuum – katalóg ABB / SBB pre projekt PrintOnDemand.
+# Rozhodnutia (decision) uviedol autor projektu; UNKNOWN = údaj zatiaľ nie je známy.
+# relevant_to_R001 = či blok používa funkcionalita 3D model pre zákazku.
+# Zrelosť: všetky SBB sú už v prevádzke (AS-IS). TO-BE môže priniesť vlastnú aplikáciu
+# alebo rozhranie namiesto open-source riešenia, ak bude treba niečo pokročilejšie.
+# Vlastník (owner): manažér nad 3D modelármi (SH-Manager); ak nie je k dispozícii,
+# zodpovedá CEO (SH-ManagementCEO). Verzie a poskytovatelia, ktoré sa líšia podľa
+# krajiny, zostávajú UNKNOWN.
 # =====================================================================
 
-reuse_candidates: []
-#  - id: "SBB-..."
-#    classification: ""
-#    realizes_abb: ""
-#    source: ""
-#    owner: ""
-#    version: ""
-#    maturity: ""
-#    evidence: ""
-#    decision: "proposed"
-#    related_adr: null
+architecture_building_blocks:
+  - id: "ABB-01"
+    name: "Jednotný formát 3D modelov"
+    level: "Foundation"
+  - id: "ABB-02"
+    name: "Jeden zdroj pravdy o objednávke"
+    level: "Foundation"
+    related_model_element: "Principle 'One system is the single source of truth' (EA #668)"
+  - id: "ABB-03"
+    name: "Ukladanie objednávok a údajov"
+    level: "Common Systems"
+  - id: "ABB-04"
+    name: "Online platba"
+    level: "Common Systems"
+  - id: "ABB-05"
+    name: "Prihlásenie zákazníka"
+    level: "Common Systems"
+  - id: "ABB-06"
+    name: "Notifikácie zákazníka"
+    level: "Common Systems"
+  - id: "ABB-07"
+    name: "Tvorba a úprava 3D modelu"
+    level: "Industry"
+  - id: "ABB-08"
+    name: "Príprava modelu na tlač (slicing)"
+    level: "Industry"
+  - id: "ABB-09"
+    name: "Riadenie tlače"
+    level: "Industry"
+  - id: "ABB-10"
+    name: "Ukladanie a opätovné použitie modelov"
+    level: "Organization-Specific"
+  - id: "ABB-11"
+    name: "Overenie tlačiteľnosti modelu"
+    level: "Organization-Specific"
+  - id: "ABB-12"
+    name: "Spoločná práca modelárov na modeli"
+    level: "Organization-Specific"
 
-# ✍️ Ak sa nič nepreberá: "Pre túto funkcionalitu sa nepreberá žiadny building block."
-note: ""
+reuse_candidates:
+  - id: "SBB-01"
+    name: "STL ako hlavný formát + konverzia z iných formátov"
+    realizes_abb: "ABB-01"
+    classification: "Foundation – štandard"
+    source: "otvorený štandard STL; nástroj na konverziu UNKNOWN"
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Artifact 'Part model file (.stl)' (EA #1022)"
+    decision: "upraviť"
+    decision_note: "Prijímame aj iné formáty a konvertujeme ich do STL."
+    relevant_to_R001: true
+
+  - id: "SBB-02"
+    name: "Databáza objednávok ako jediný zdroj pravdy"
+    realizes_abb: "ABB-02"
+    classification: "Organization-Specific – vlastné pravidlo"
+    source: "vlastný princíp, realizovaný cez SBB-03"
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Principle EA #668; Driver 'Manual order handling (e-mail, Excel)' (EA #659)"
+    decision: "použiť"
+    relevant_to_R001: true
+
+  - id: "SBB-03"
+    name: "PostgreSQL"
+    realizes_abb: "ABB-03"
+    classification: "Common Systems – open-source produkt"
+    source: "open-source"
+    owner: "SH-Manager"
+    version: "UNKNOWN"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "System Software 'Postgresql' (EA #735)"
+    usage_note: "Ukladá údaje objednávok a modelov vrátane ciest k súborom; súbory sú na serveri."
+    decision: "použiť"
+    relevant_to_R001: true
+
+  - id: "SBB-04"
+    name: "Platobná brána podľa regiónu"
+    realizes_abb: "ABB-04"
+    classification: "Common Systems – externá služba"
+    source: "externý poskytovateľ alebo agregátor, v každej krajine iný (UNKNOWN)"
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Interface 'Payment API (external)' (EA #1030), Resource 'Payment gateway' (EA #680)"
+    decision: "použiť"
+    relevant_to_R001: false
+
+  - id: "SBB-05"
+    name: "Login a heslo + voliteľné dvojfaktorové overenie"
+    realizes_abb: "ABB-05"
+    classification: "Common Systems – štandard"
+    source: >
+      Štandardné prihlásenie; 2FA voliteľne cez kód zaslaný e-mailom/SMS alebo
+      časový kód v aplikácii meniaci sa každých 30 s (TOTP). Knižnica/produkt UNKNOWN.
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "QR-001 (minimum osobných údajov – povinný je len účet)"
+    decision: "použiť"
+    relevant_to_R001: false
+
+  - id: "SBB-06"
+    name: "Notifier + e-mailová a SMS služba"
+    realizes_abb: "ABB-06"
+    classification: "Common Systems"
+    source: >
+      Notifier je vlastný komponent; e-mail a SMS sa posielajú iba na kanály, ktoré
+      zákazník zadal, a zákazník ich môže vypnúť. Poskytovatelia e-mail/SMS sa líšia podľa krajiny (UNKNOWN).
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Component 'Notifier' (EA #892), QR-001"
+    decision: "použiť"
+    relevant_to_R001: true
+
+  - id: "SBB-07"
+    name: "FreeCAD"
+    realizes_abb: "ABB-07"
+    classification: "Industry – open-source produkt"
+    source: "FreeCAD (open-source), najnovšia verzia; v prípade potreby ho môžeme dať upraviť vlastnými vývojármi"
+    owner: "SH-Manager"
+    version: "najnovšia (UNKNOWN)"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "System Software 'CAD' (EA #741)"
+    decision: "použiť"
+    decision_note: "Model upravujú iba naši 3D modelári (BR-007)."
+    relevant_to_R001: true
+
+  - id: "SBB-08"
+    name: "Slicer dodávaný výrobcom tlačiarne"
+    realizes_abb: "ABB-08"
+    classification: "Industry – produkt dodávateľa"
+    source: "dodáva sa spolu s 3D tlačiarňou (konkrétny produkt UNKNOWN)"
+    owner: "SH-Manager"
+    version: "UNKNOWN"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Component 'Slicer' (EA #897), Business Actor 'Printer Supplier company' (EA #130)"
+    decision: "použiť"
+    relevant_to_R001: false
+
+  - id: "SBB-09"
+    name: "Univerzálne rozhranie na pripojenie tlačiarní + vlastný Print Scheduler"
+    realizes_abb: "ABB-09"
+    classification: "Industry – hotový produkt + Organization-Specific doplnok"
+    source: >
+      Rozhranie na pripojenie ľubovoľnej tlačiarne je hotové (produkt UNKNOWN), sami ho
+      nevyvíjame. Print Scheduler je vlastný: sleduje stav tlače, či bol výtlačok
+      vybratý, kde a čo sa dá vyzdvihnúť, či tlačiareň potrebuje údržbu a či sa dá spustiť.
+    owner: "SH-Manager"
+    version: "UNKNOWN"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Components 'Printer Connector' (EA #900), 'Print Scheduler' (EA #899)"
+    decision: "použiť"
+    relevant_to_R001: false
+
+  - id: "SBB-10"
+    name: "Model Repository nad PostgreSQL"
+    realizes_abb: "ABB-10"
+    classification: "Organization-Specific – vlastný vývoj"
+    source: >
+      Vlastný komponent nad PostgreSQL (SBB-03). V databáze sú údaje o modeli a cesta
+      k súboru; samotné súbory modelov sú uložené na serveri. Pamätá si, ku ktorej
+      objednávke model patril. Model sa opätovne použije iba so súhlasom zákazníka (BR-006).
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Component 'Model Repository' (EA #893), Resource '3D model library' (EA #108)"
+    decision: "použiť"
+    relevant_to_R001: true
+
+  - id: "SBB-11"
+    name: "Open-source validátory modelov + vlastné validátory pre naše tlačiarne"
+    realizes_abb: "ABB-11"
+    classification: "Industry – open-source knižnica + Organization-Specific rozšírenie"
+    source: >
+      Hotové open-source validátory (dostupné pre väčšinu jazykov) overia, že model je
+      v poriadku. Pre každý typ tlače (plast, kov, živica, …) a každú našu tlačiareň
+      dopíšeme vlastný validátor.
+    owner: "SH-Manager"
+    version: "UNKNOWN"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Component 'Model Validator' (EA #894), Constraint C-001"
+    decision: "upraviť"
+    relevant_to_R001: true
+
+  - id: "SBB-12"
+    name: "GitLab – repozitár na každý model"
+    realizes_abb: "ABB-12"
+    classification: "Common Systems produkt (GitLab) prispôsobený pre Organization-Specific použitie"
+    source: >
+      Modeling Workspace beží na GitLabe. Každý model je samostatný repozitár, na ktorom pracujú modelári cez pull requesty
+      a issues; model je zároveň úloha (ticket), takže sa dá sledovať a opätovne použiť.
+    owner: "SH-Manager"
+    version: "—"
+    maturity: "AS-IS – v prevádzke"
+    evidence: "Application Component 'Modeling Workspace' (EA #895)"
+    decision: "upraviť"
+    relevant_to_R001: true
+

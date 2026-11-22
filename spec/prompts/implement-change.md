@@ -1,7 +1,7 @@
 Mode: IMPLEMENT_CHANGE
 Change: R-001
-Specification baseline: ✍️
-Approved contract: ✍️ (ID a verzia zo spec/contracts/approved/)
+Specification baseline: 0.1.0
+Approved contract: <ID a verzia zo spec/contracts/approved/ – doplní sa po schválení>
 
 Najprv priprav impact analysis a generation plan po súboroch.
 Po kontrole vytvor najmenší candidate code a tests.

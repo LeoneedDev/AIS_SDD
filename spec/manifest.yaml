@@ -7,8 +7,7 @@
 specification:
   version: "0.1.0"
   status: "draft"
-  # ✍️ Označenie dohodnutého stavu modelu v Sparx EA (napr. "B-01").
-  architecture_baseline: null
+  architecture_baseline: null   # baseline v EA sa nevytvára; zdroj: EANEWExample.qea (2026-11-22)
   feature: "3D model pre zákazku – vytvorenie alebo schválenie modelu"
   change: "R-001"
   ai_rules_version: "4.0"

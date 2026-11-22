@@ -1,24 +1,10 @@
-# =====================================================================
-# spec/technology/technology-context.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-# Mapovanie ID → prvok v modeli Sparx EA (D37, D38)
-#   NODE-SlicingScanProcessing = Node "Slicing and Scan Processing"                 EA #724
-#   NODE-WebApiServer          = Node "Web and API server"                           EA #734
-#   SSW-CAD                    = System Software "CAD"                               EA #741
-#   DEV-StrongGPU              = Device "Strong GPU"                                 EA #743
-#   TS-CadModeling             = Technology Service "Tech service: Cad modeling, gpu, 3d scans" EA #1076
-#   TS-WebApiDbHosting         = Technology Service "Tech service: Web server hosting and API hosting and Database hosting" EA #1073
-#   ACO-OrderManagementSystem  = Application Collaboration "Order Management System" EA #1029
-# =====================================================================
-
 technology_context:
-  # ✍️ "applicable" / "not applicable"? Model Pipeline (Modeling Workspace + Model Validator)
-  # ✍️ obsluhuje TS-CadModeling. Rozhodne človek, nie AI.
-  status: null
-  reason: ""
-  confirmed_by_role: null
+  status: "not applicable"
+  reason: >
+    Pre tento výrez nie sú potrebné ďalšie runtime alebo deployment rozhodnutia.
+    Technologická vrstva je v modeli zachytená (uzly, služby, Composition); deployment
+    .stl súboru a deployable artefakt sa v tomto SDD neriešia.
+  confirmed_by_role: "autor modelu (LeoneedDev), 2026-11-22"
 
 nodes:
   - id: "NODE-SlicingScanProcessing"
@@ -32,15 +18,12 @@ nodes:
 system_software:
   - id: "SSW-CAD"
     name: "CAD"
-    # ✍️ V EA je CAD len vizuálne vnorený do uzla – ArchiMate väzba chýba. Doplniť v EA?
     host_node: "NODE-SlicingScanProcessing"
-    # ✍️ Konkrétny CAD produkt a verzia – iba cez ADR.
     product: null
 
 devices:
   - id: "DEV-StrongGPU"
     name: "Strong GPU"
-    # ✍️ Rovnako: len vizuálne vnorenie, väzba v EA chýba.
     host_node: "NODE-SlicingScanProcessing"
 
 technology_services:

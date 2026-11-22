@@ -1,20 +1,50 @@
-# =====================================================================
-# spec/application/lifecycles.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-#
-# ПОДСКАЗКИ: "# ✍️" — подсказки, после заполнения удали.
-# Iba význam stavov a povolené prechody – žiadne tabuľky ani persistence.
-# =====================================================================
-
 lifecycles:
-  - data_object: "DO-3DModel"
-    # ✍️ Стартовое состояние (например "draft" для VAR-1 / "submitted" для VAR-2).
-    initial_state: null
+  - data_object: "DO-ModelApproval"
+    note: >
+      Stav je jeden pre všetkých; "čakáme na zákazníka" / "čakáme na modelára"
+      je len popis toho istého stavu v UI.
+    states:
+      - name: "waiting_for_review"
+        description: "Model odoslaný zákazníkovi, čaká na jeho reakciu."
+      - name: "in_review"
+        description: "Zákazník model posudzuje."
+      - name: "approved"
+        description: "Zákazník súhlasí s modelom."
+      - name: "rejected"
+        description: "Zákazník žiada úpravu modelu."
+      - name: "closed_new_development"
+        description: >
+          Bezplatné revízie sú vyčerpané; ďalšia úprava sa rieši ako nový platený
+          vývoj modelu s novým záznamom Model approval.
+    initial_state: "waiting_for_review"
+    final_states: ["approved", "closed_new_development"]
     transitions:
-      # ✍️ Опиши переходы обоих путей: создание, отправка на одобрение, ревизия,
-      # ✍️ одобрение, отклонение, превышение бесплатных ревизий.
-      - from: null
-        to: null
-        trigger: ""
-        guard_rules: []
+      - from: "waiting_for_review"
+        to: "in_review"
+        trigger: "zákazník začal model posudzovať"
+        requirements: ["R-001"]
+
+      - from: "in_review"
+        to: "approved"
+        trigger: "zákazník súhlasí; súhlas zaznamená 3D modelár alebo manažér"
+        guard_rules: ["BR-003"]
+        requirements: ["R-001"]
+
+      - from: "in_review"
+        to: "rejected"
+        trigger: "zákazník žiada úpravu modelu"
+        requirements: ["R-001"]
+
+      - from: "rejected"
+        to: "waiting_for_review"
+        trigger: "modelár odoslal upravený model (nová revízia)"
+        guard: "počet revízií < 2"
+        guard_rules: ["BR-002"]
+        requirements: ["R-001"]
+
+      - from: "rejected"
+        to: "closed_new_development"
+        trigger: "zákazník žiada ďalšiu úpravu po 2 bezplatných revíziách"
+        guard: "počet revízií = 2"
+        guard_rules: ["BR-002"]
         requirements: ["R-001"]

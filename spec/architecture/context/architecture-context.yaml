@@ -1,0 +1,87 @@
+architecture_context:
+  baseline: null
+  source_model: "EANEWExample.qea (2026-11-22)"
+  status: "draft"
+  reviewed_by: null
+  purpose: >
+    Jednoznačné priradenie ID používaných v spec/ k prvkom modelu v Sparx EA.
+    Ak je to uvedené, prvok má v EA rovnaký Alias.
+  notes:
+    - "Aktéri sú v modeli Business Actors, preto prefix ACT-."
+    - "Pole 'variants' v actors-processes.yaml zachytáva dve cesty z Junction 'Who provides model?'."
+
+elements:
+  motivation:
+    - { id: "R-001", type: "Requirement", name: "3D model approval (2 free revisions)", ea_id: 671, alias_in_ea: true }
+    - { id: "G-001", type: "Goal", name: "Unique part made as a single piece", ea_id: 665, alias_in_ea: true }
+    - { id: "PRIN-001", type: "Principle", name: "Nothing is printed without customer approval", ea_id: 667, alias_in_ea: true }
+    - { id: "C-001", type: "Constraint", name: "Only 3D printing within own printers' limits", ea_id: 669, alias_in_ea: true }
+    - { id: "SH-Manager", type: "Stakeholder", name: "Manager", ea_id: 654 }
+    - { id: "SH-ManagementCEO", type: "Stakeholder", name: "Management (CEO)", ea_id: 657 }
+
+  business:
+    - { id: "ACT-Clients", type: "Business Actor", name: "Clients", ea_id: 127 }
+    - { id: "ACT-3DModeler", type: "Business Actor", name: "3D modeler", ea_id: 45 }
+    - { id: "ACT-Manager", type: "Business Actor", name: "Manager", ea_id: 40 }
+    - { id: "BP-HandleCustomPartOrder", type: "Business Process", name: "Handle custom part order", ea_id: 873 }
+    - { id: "BP-AssessRequestAndQuote", type: "Business Process", name: "Assess request and quote", ea_id: 874 }
+    - { id: "BP-ModelThePart", type: "Business Process", name: "Model the part", ea_id: 875, alias_in_ea: true }
+    - { id: "BP-ApproveTheModel", type: "Business Process", name: "Approve the model", ea_id: 1115, alias_in_ea: true }
+    - { id: "BP-PrintAndCheckQuality", type: "Business Process", name: "Print and check quality", ea_id: 876 }
+    - { id: "BS-3DModelingApproval", type: "Business Service", name: "3D modeling & model approval", ea_id: 828, alias_in_ea: true }
+    - { id: "BO-3DModel", type: "Business Object", name: "3D model", ea_id: 882 }
+    - { id: "BO-Order", type: "Business Object", name: "Order", ea_id: 881 }
+    - { id: "JN-WhoProvidesModel", type: "Junction", name: "Who provides model?", ea_id: 1093 }
+
+  application:
+    - { id: "AC-ModelingWorkspace", type: "Application Component", name: "Modeling Workspace", ea_id: 895, alias_in_ea: true }
+    - { id: "AC-ModelValidator", type: "Application Component", name: "Model Validator", ea_id: 894, alias_in_ea: true }
+    - { id: "AC-ModelRepository", type: "Application Component", name: "Model Repository", ea_id: 893 }
+    - { id: "AC-CustomerPortal", type: "Application Component", name: "Customer portal", ea_id: 889 }
+    - { id: "AC-OrderOrchestrator", type: "Application Component", name: "Order Orchestrator", ea_id: 891 }
+    - { id: "AC-Notifier", type: "Application Component", name: "Notifier", ea_id: 892 }
+    - { id: "AC-Slicer", type: "Application Component", name: "Slicer", ea_id: 897 }
+    - { id: "ACO-ModelPipeline", type: "Application Collaboration", name: "Model Pipeline", ea_id: 1013 }
+    - { id: "ACO-OrderManagementSystem", type: "Application Collaboration", name: "Order Management System", ea_id: 1029 }
+    - { id: "AS-ModellingOfComponent", type: "Application Service", name: "Modelling of component", ea_id: 903, alias_in_ea: true }
+    - { id: "AS-ApprovingModel", type: "Application Service", name: "Aproving model", ea_id: 904, alias_in_ea: true }
+    - { id: "AS-3DPrinting", type: "Application Service", name: "3D printing", ea_id: 832 }
+    - { id: "AS-InformingCustomer", type: "Application Service", name: "Informing and contacting customer", ea_id: 907 }
+    - { id: "AS-CreatingRequest", type: "Application Service", name: "Creating a request", ea_id: 909 }
+    - { id: "AS-RequestProcessing", type: "Application Service", name: "Request processing", ea_id: 902 }
+    - { id: "AS-ApprovingPrintSettings", type: "Application Service", name: "Aproving print settings", ea_id: 905 }
+    - { id: "AS-ModelStorage", type: "Application Service", name: "Model storage", ea_id: 1114 }
+
+  data:
+    - { id: "DO-Order", type: "Data Object", name: "Order", ea_id: 964 }
+    - { id: "DO-PromptOrder", type: "Data Object", name: "Prompt Order", ea_id: 976, alias_in_ea: true }
+    - { id: "DO-ModelOrder", type: "Data Object", name: "Model order", ea_id: 975, alias_in_ea: true }
+    - { id: "DO-3DModel", type: "Data Object", name: "3D model", ea_id: 965, alias_in_ea: true }
+    - { id: "DO-ModelApproval", type: "Data Object", name: "Model approval", ea_id: 1113, alias_in_ea: true }
+    - { id: "DO-ModelingTask", type: "Data Object", name: "Modeling task", ea_id: 969 }
+    - { id: "DO-Notification", type: "Data Object", name: "Notification", ea_id: 968 }
+    - { id: "ART-PartModelFile", type: "Artifact", name: "Part model file (.stl)", ea_id: 1022 }
+
+  technology:
+    - { id: "NODE-SlicingScanProcessing", type: "Node", name: "Slicing and Scan Processing", ea_id: 724 }
+    - { id: "NODE-WebApiServer", type: "Node", name: "Web and API server", ea_id: 734 }
+    - { id: "SSW-CAD", type: "System Software", name: "CAD", ea_id: 741 }
+    - { id: "DEV-StrongGPU", type: "Device", name: "Strong GPU", ea_id: 743 }
+    - { id: "TS-CadModeling", type: "Technology Service", name: "Tech service: Cad modeling, gpu, 3d scans", ea_id: 1076 }
+    - { id: "TS-WebApiDbHosting", type: "Technology Service", name: "Tech service: Web server hosting and API hosting and Database hosting", ea_id: 1073 }
+
+  implementation_migration:
+    - { id: "PL-ASIS", type: "Plateau", name: "AS-IS: Current order platform without B2B billing, pricing, complaints and stock", ea_id: 1078 }
+    - { id: "PL-TRANSITION", type: "Plateau", name: "Transition: B2B accounts, invoicing and automatic quoting in operation", ea_id: 1079 }
+    - { id: "PL-TOBE", type: "Plateau", name: "TO-BE: Complete order platform with complaint handling and material stock tracking", ea_id: 1080 }
+    - { id: "WP-001", type: "Work Package", name: "Implement company accounts and invoicing", ea_id: 1085 }
+    - { id: "WP-002", type: "Work Package", name: "Implement automatic quote pricing", ea_id: 1086 }
+    - { id: "WP-003", type: "Work Package", name: "Implement complaint handling and reprint", ea_id: 1087 }
+    - { id: "WP-004", type: "Work Package", name: "Implement material stock tracking", ea_id: 1088 }
+    - { id: "D-001", type: "Deliverable", name: "Account management and Billing component deployed (company accounts, invoices)", ea_id: 1081 }
+    - { id: "D-002", type: "Deliverable", name: "Pricing Engine deployed (automatic quote calculation)", ea_id: 1082 }
+    - { id: "D-003", type: "Deliverable", name: "Complaint handling and reprint flow in operation (14-day complaints)", ea_id: 1083 }
+    - { id: "D-004", type: "Deliverable", name: "Materials Inventory component deployed (stock and consumption tracking)", ea_id: 1084 }
+    - { id: "IE-001", type: "Implementation Event", name: "Gap analysis and change packages approved", ea_id: 1089 }
+    - { id: "IE-002", type: "Implementation Event", name: "Transition plateau accepted", ea_id: 1090 }
+    - { id: "IE-003", type: "Implementation Event", name: "Target platform accepted", ea_id: 1091 }

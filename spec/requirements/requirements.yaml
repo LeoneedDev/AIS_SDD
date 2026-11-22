@@ -3,7 +3,7 @@
 # Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
 # "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 #
-# Mapovanie ID → prvok v modeli Sparx EA
+# Mapovanie ID → prvok v modeli Sparx EA (Alias v EA = ID nižšie)
 #   R-001                    = Requirement "3D model approval (2 free revisions)"        EA #671
 #   G-001                    = Goal "Unique part made as a single piece"                 EA #665
 #   PRIN-001                 = Principle "Nothing is printed without customer approval"  EA #667
@@ -11,38 +11,35 @@
 #   BS-3DModelingApproval    = Business Service "3D modeling & model approval"           EA #828
 #   AS-ModellingOfComponent  = Application Service "Modelling of component"              EA #903
 #   AS-ApprovingModel        = Application Service "Aproving model"                      EA #904
+#   SH-Manager               = Stakeholder "Manager"                                     EA #654
+#   SH-ManagementCEO         = Stakeholder "Management (CEO)"                            EA #657
 # =====================================================================
 
 requirements:
   - id: "R-001"
     title: "3D model approval (2 free revisions)"
-
-    # ✍️ ЧТО система должна позволить / гарантировать (оба пути: модель делаем мы / приносит клиент).
-    statement: ""
-
-    # ✍️ ПОЧЕМУ. Опора в модели: PRIN-001, G-001, Contract "General terms (2 free model revisions)" EA #823.
-    rationale: ""
-
+    statement: >
+      Systém musí umožniť zákazníkovi pred tlačou skontrolovať 3D model – vytvorený
+      nami podľa jeho popisu (VAR-1) alebo dodaný ním a overený nami (VAR-2) – a
+      schváliť ho alebo požiadať o úpravu. Do tlače smie ísť iba schválený model.
+      Zákazník má k dispozícii 2 bezplatné revízie modelu.
+    rationale: >
+      Diel sa vyrába ako jediný kus podľa požiadavky zákazníka (G-001); preto sa nič
+      netlačí bez jeho súhlasu (PRIN-001). Limit 2 bezplatných revízií vychádza
+      zo všeobecných obchodných podmienok (Contract EA #823).
     source_goals: ["G-001"]
-
-    # ✍️ Владелец смысла. В модели нет. Кандидаты: Manager (#40), Management (CEO) (#47), 3D modeler (#45).
-    owner: null
-
-    # ✍️ "must" / "should" / "could"
-    priority: null
-
+    owner: "SH-Manager"
+    priority: "must"
     status: "draft"
-
     # ✍️ «2 бесплатные ревизии» — путь VAR-1, VAR-2 или оба? Если один — убери лишний AS.
     realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
-
-    # ✍️ Оставь подходящие сценарии (01/02 = VAR-1, 03/04 = VAR-2).
     acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04"]
 
 constraints:
-  # ✍️ Относится ли C-001 к функции (например, проверка модели клиента = «влезет ли в наши принтеры»)?
-  # ✍️ Если нет — удали блок.
   - id: "C-001"
-    statement: ""
-    owner: null
+    # ✍️ DRAFT podľa názvu v modeli. Pôvodný text autora je teraz BR-005. Potvrď znenie.
+    statement: >
+      Tlačíme iba modely, ktoré sa dajú vytlačiť v rámci parametrov našich
+      tlačiarní (rozmer, materiál).
+    owner: "SH-ManagementCEO"
     status: "draft"

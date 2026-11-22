@@ -7,7 +7,7 @@
 
 business_rules:
   - id: "BR-001"
-    # ✍️ Кандидат из PRIN-001 «Nothing is printed without customer approval».
+    # ✍️ Кандидат из PRIN-001: «Do tlače smie ísť iba model so stavom schválenia approved.»
     title: ""
     type: "invariant"
     statement: ""
@@ -16,11 +16,66 @@ business_rules:
     scenarios: []
 
   - id: "BR-002"
-    # ✍️ Лимит 2 бесплатных ревизий (Contract EA #823). Только VAR-1? Что после лимита?
-    title: ""
-    # ✍️ "invariant" / "rule"
-    type: null
-    statement: ""
-    owner: null
+    title: "Dve bezplatné revízie, potom nový vývoj"
+    type: "rule"
+    statement: >
+      Zákazník má k dispozícii 2 bezplatné revízie modelu. Ďalšia požadovaná úprava
+      sa už neúčtuje ako revízia, ale ako vývoj nového modelu (nová platba a nový
+      záznam schválenia).
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: []
+
+  - id: "BR-003"
+    title: "Schválenie modelu zaznamenáva iba oprávnená osoba"
+    type: "rule"
+    # ✍️ DRAFT z modelu. Potvrď znenie.
+    statement: >
+      Schválenie modelu udeľuje zákazník. Do systému ho zaznamená 3D modelár
+      alebo manažér v Modeling Workspace na základe súhlasu zákazníka.
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: []
+
+  - id: "BR-004"
+    title: "Zmena objednávky iba pred tlačou"
+    type: "rule"
+    # ✍️ DRAFT. Считается ли изменение модели до печати одной из 2 ревизий?
+    statement: >
+      Zákazník môže zmeniť alebo doplniť objednávku a model, kým objednávka
+      neprešla do tlače. Po začatí tlače zmena nie je možná.
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: []
+
+  - id: "BR-005"
+    title: "Oprava modelu iba so súhlasom zákazníka"
+    type: "rule"
+    statement: >
+      Ak s modelom nie je niečo v poriadku, opravíme ho, ale najprv sa zákazníka
+      opýtame, či chce, aby sme ho opravili. Bez jeho súhlasu model neupravujeme.
+    owner: "SH-ManagementCEO"
+    requirements: ["R-001"]
+    scenarios: ["SC-001-04"]
+
+  - id: "BR-006"
+    title: "Opätovné použitie modelu iba so súhlasom vlastníka"
+    type: "rule"
+    statement: >
+      Model sa ponúkne inému zákazníkovi iba vtedy, ak pôvodný zákazník povolil jeho
+      zdieľanie. Bežný zákazník si zdieľanie volí sám. Pri firemných (B2B) zákazníkoch
+      je zdieľanie predvolene vypnuté; ak ho povolia, môžu dostať zľavu.
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: []
+
+  - id: "BR-007"
+    title: "Model upravujú iba naši 3D modelári"
+    type: "rule"
+    statement: >
+      Zákazník model v našom systéme sám neupravuje; môže iba požiadať o úpravu.
+      Úpravy robia výhradne naši 3D modelári. Ak chce zákazník model meniť sám,
+      urobí to vo vlastnom nástroji a pošle nový model (VAR-2).
+    owner: "SH-Manager"
     requirements: ["R-001"]
     scenarios: []

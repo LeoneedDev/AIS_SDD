@@ -1,10 +1,3 @@
-# =====================================================================
-# spec/application/service-realization.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# Textová verzia diagramu "Service Realization Viewpoint" (EA diagram D64).
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-# =====================================================================
-
 service_realization:
   - business_service: "BS-3DModelingApproval"
     used_by_roles: ["ACT-Clients"]
@@ -26,18 +19,22 @@ service_realization:
           application_service: "AS-ModellingOfComponent"
           component: "AC-ModelingWorkspace"
           data_objects: ["DO-PromptOrder"]
-          # ✍️ Когда выбирается (то же, что в actors-processes.yaml → variants).
-          condition: ""
+          condition: >
+            Zákazník nás požiada o vytvorenie modelu a pošle špecifikáciu, schému
+            alebo aspoň textový popis toho, čo chce.
 
         - id: "VAR-2"
           name: "Model dodá zákazník"
           application_service: "AS-ApprovingModel"
           component: "AC-ModelValidator"
           data_objects: ["DO-ModelOrder", "DO-3DModel"]
-          # ✍️ Когда выбирается.
-          condition: ""
+          condition: >
+            Zákazník pošle hotový 3D model a chce ho iba vytlačiť.
 
     requirements: ["R-001"]
 
-    # ✍️ Voliteľné: 1–2 vety, ako aplikácia pomáha business službe.
-    note: ""
+    note: >
+      Služba ponúka dva spôsoby realizácie. Zákazník niekedy vie, čo chce, ale
+      nemá hotový model alebo ho nechce zostaviť sám model vytvoríme my.
+      Inokedy už má hotový 3D model (napr. vlastný alebo open-source) a chce
+      ho iba vytlačiť, prípadne po tlači zostaviť.

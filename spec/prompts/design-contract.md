@@ -1,6 +1,6 @@
 Mode: DESIGN_CONTRACT
 Change: R-001
-Specification baseline: ✍️
+Specification baseline: 0.1.0
 
 Navrhni contract podľa approved architecture a contract design profile.
 Použi registrované a človekom overené obrázky a textové podklady.

@@ -6,9 +6,11 @@
 # Mapovanie ID → prvok v modeli Sparx EA
 #   ACT-Clients               = Business Actor "Clients"                        EA #127
 #   ACT-3DModeler             = Business Actor "3D modeler"                     EA #45
+#   ACT-Manager               = Business Actor "Manager"                        EA #40
 #   BP-HandleCustomPartOrder  = Business Process "Handle custom part order"     EA #873
 #   BP-AssessRequestAndQuote  = Business Process "Assess request and quote"     EA #874
 #   BP-ModelThePart           = Business Process "Model the part"               EA #875
+#   BP-ApproveTheModel        = Business Process "Approve the model"            EA #1115
 #   BP-PrintAndCheckQuality   = Business Process "Print and check quality"      EA #876
 #   BS-3DModelingApproval     = Business Service "3D modeling & model approval" EA #828
 #   BO-3DModel                = Business Object "3D model"                      EA #882
@@ -23,25 +25,34 @@ actors_roles:
   - id: "ACT-Clients"
     name: "Clients"
     type: "Business Actor"
-    # ✍️ Что делает клиент: VAR-1 — даёт описание и одобряет, VAR-2 — приносит свою модель.
-    responsibility: ""
+    responsibility: >
+      Ak chce model od nuly, pošle požiadavku alebo schému (VAR-1). Ak už model má,
+      pošle ho a čaká na tlač alebo na správu, čo s modelom nie je v poriadku (VAR-2).
 
   - id: "ACT-3DModeler"
     name: "3D modeler"
     type: "Business Actor"
-    # ✍️ Что делает моделлер в VAR-1 и в VAR-2.
-    responsibility: ""
+    responsibility: >
+      Vo všetkých prípadoch vytvára, kontroluje a upravuje 3D model a odovzdáva ho do tlače.
+
+  - id: "ACT-Manager"
+    name: "Manager"
+    type: "Business Actor"
+    responsibility: >
+      Pri schvaľovaní modelu vystupuje ako vedúci: môže model skontrolovať, odovzdať
+      ho inému modelárovi, zrušiť ho alebo poslať do tlače.
 
 business_objects:
   - id: "BO-3DModel"
     name: "3D model"
-    # ✍️ Смысл для бизнеса (не файл).
-    meaning: ""
+    meaning: >
+      Konkrétna inštancia 3D modelu pre zákazníka – dodaná ním alebo vytvorená nami.
 
   - id: "BO-Order"
     name: "Order"
-    # ✍️ Смысл для бизнеса. В модели: Meaning "Customer commitment to buy one custom part" (#1019).
-    meaning: ""
+    meaning: >
+      Záväzok zákazníka kúpiť jeden diel na mieru; nesie údaje o modeli, o tom, čo
+      je s ním v poriadku a čo nie, a stav tlače.
 
 processes:
   - id: "BP-ModelThePart"
@@ -49,49 +60,69 @@ processes:
     part_of: "BP-HandleCustomPartOrder"
     owner: "ACT-3DModeler"
 
-    # ✍️ С чего начинается. В модели: Flow «paid order» из BP-AssessRequestAndQuote.
-    trigger: ""
+    trigger: >
+      Zaplatená objednávka (Flow "paid order" z BP-AssessRequestAndQuote). Ak zákazník
+      žiada vytvorenie modelu, model vytvoríme; inak dodaný model iba overíme.
 
-    # ✍️ Что должно быть правдой до начала (заказ оплачен, …).
     preconditions:
-      - ""
+      - "Objednávka je zaplatená."
+      - "Pri VAR-2: súbor s modelom existuje a dá sa otvoriť."
 
-    # ✍️ Общие шаги: определить, кто даёт модель (Junction) … передать одобренную модель дальше.
     main_flow:
-      - ""
-      - ""
+      - "Určí sa, kto model dodáva (JN-WhoProvidesModel)."
+      - "VAR-2: zákazník dodá vlastný model a my ho overíme."
+      - "VAR-1: model vytvorí náš 3D modelár a predloží ho zákazníkovi na posúdenie."
+      - "Schválený a overený model sa odovzdá do tlače."
 
-    # Notes z Junction (EA #1093): "If model is user provided we dont need create it or
-    # recreate it, only approve that this model is ok, and user also can ask us to create
-    # model for him based on description or schemas"
     variants:
       - id: "VAR-1"
         name: "Model vytvoríme my"
-        # ✍️ Когда выбирается этот путь.
-        condition: ""
-        # ✍️ Шаги: кто что делает, включая одобрение клиентом и ревизии.
+        condition: >
+          Zákazník nás požiada o vytvorenie modelu a pošle popis, čo má model obsahovať.
         steps:
-          - ""
-          - ""
-          - ""
+          - "Zákazník pošle popis."
+          - "Modelár overí, či v repozitári (3D model library) už existuje hotový overený model. Ak áno, použije sa a hneď sa pošle zákazníkovi na schválenie, bez nového modelovania (INT-003)."
+          - "Ak hotový model neexistuje, náš 3D modelár ho vytvorí."
+          - "Zákazník model schváli (BP-ApproveTheModel)."
+          - "Ďalší 3D modelár skontroluje kvalitu práce a to, či sa model dá vytlačiť."
 
       - id: "VAR-2"
         name: "Model dodá zákazník"
-        # ✍️ Когда выбирается этот путь.
-        condition: ""
-        # ✍️ Шаги: проверка модели клиента и что дальше.
+        condition: >
+          Zákazník pošle hotový 3D model.
         steps:
-          - ""
-          - ""
+          - "Zákazník pošle 3D model a 3D modelár ho overí."
+          # ✍️ Противоречие с PRIN-001: печать без одобрения клиента. а) присланная модель =
+          # ✍️ одобрение (записать как правило) или б) клиент всё равно подтверждает?
+          - "Ak model obsahuje chyby, zákazníkovi to oznámime a opýtame sa, či ho chce opraviť. Ak chyby nemá, model ide priamo do tlače."
 
-    # ✍️ Исключения, меняющие результат: клиент отклонил / кончились ревизии (VAR-1);
-    # ✍️ модель клиента нельзя напечатать — переход на VAR-1? (VAR-2); клиент не отвечает.
     exceptions:
-      - ""
+      - "Ak zákazník žiada viac než dve rozsiahle úpravy alebo úplné prerobenie modelu, považuje sa to za nový vývoj modelu od nuly."
+      - "Ak sa minie materiál alebo sa niečo pokazí, zákazník dostane stav „čaká na tlač“ a objednávku sa snažíme dokončiť; v krajnom prípade ju ukončíme."
 
-    # ✍️ Чем заканчивается. В модели: Flow «approved 3D model» → BP-PrintAndCheckQuality.
-    outcome: ""
+    outcome: >
+      Model, ktorý je overený a schválený zákazníkom aj naším 3D modelárom, sa odovzdá
+      do tlače (Flow "approved 3D model" → BP-PrintAndCheckQuality).
 
+    responsibility_escalation: >
+      Za model najprv zodpovedá 3D modelár, kým ho nevytvorí, neschváli a nevráti
+      zákazníkovi. Potom zodpovedá manažér nad 3D modelármi; ak nie je k dispozícii,
+      zodpovedá CEO.
     provides_business_services: ["BS-3DModelingApproval"]
     business_objects: ["BO-3DModel"]
+    subprocesses: ["BP-ApproveTheModel"]
+    requirements: ["R-001"]
+
+  - id: "BP-ApproveTheModel"
+    name: "Approve the model"
+    part_of: "BP-ModelThePart"
+    # Zákazník dáva súhlas (PRIN-001); 3D modelár alebo manažér ho zaznamenáva.
+    performed_by: ["ACT-Clients", "ACT-3DModeler", "ACT-Manager"]
+    business_objects: ["BO-3DModel"]
+    trigger: >
+      Hotový (vytvorený alebo overený) 3D model sa pošle zákazníkovi s otázkou,
+      či s ním súhlasí.
+    outcome: >
+      Ak zákazník súhlasí, model ide na potvrdenie ďalšiemu 3D modelárovi, ktorý overí,
+      že je v poriadku. Ak nesúhlasí, model upravíme podľa jeho požiadavky.
     requirements: ["R-001"]

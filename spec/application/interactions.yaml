@@ -1,28 +1,12 @@
-# =====================================================================
-# spec/application/interactions.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# Zdroj: Flow z/do Modeling Workspace a Model Validator ("Application Cooperation
-# Viewpoint" D50). Flow v modeli NEMAJÚ názov – čo sa prenáša, dopĺňaš ty.
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-#   consumer — kto služby používa; provider — kto ju poskytuje
-#   information — kandidáti: DO-3DModel, DO-ModelOrder, DO-PromptOrder, DO-Order,
-#       DO-ModelingTask (#969), DO-Notification (#968), DO-GCode (#967), DO-Exception (#1024)
-#   communication_style — "undecided", kým nerozhodneš API vs event
-# =====================================================================
-
 interactions:
-  # ================= CESTA 1: model vytvoríme my =================
   - id: "INT-001"
     path: "VAR-1"
     flow_in_model: "AC-OrderOrchestrator → AC-ModelingWorkspace"
-    # ✍️ Старт пути 1? Модель подсказывает: "Model Intake" (#1014, часть Model Pipeline)
-    # ✍️ —Serving→ Order Orchestrator, читает DO-ModelingTask и DO-3DModel.
-    # ✍️ Значит consumer = AC-OrderOrchestrator, provider = ACO-ModelPipeline? Подтверди.
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: "Orchestrator pridelí objednávku modelárovi ako úlohu na modelovanie."
+    consumer: "AC-OrderOrchestrator"
+    provider: "AC-ModelingWorkspace"
+    uses_application_service: "AS-ModellingOfComponent"
+    information: ["DO-ModelingTask", "DO-PromptOrder"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -30,11 +14,11 @@ interactions:
   - id: "INT-002"
     path: "VAR-1"
     flow_in_model: "AC-ModelingWorkspace → AC-ModelRepository"
-    # ✍️ Сохранение модели? Model Repository не реализует ни одного сервиса — какой сервис тут?
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: "Uloženie vytvoreného modelu a jeho revízií."
+    consumer: "AC-ModelingWorkspace"
+    provider: "AC-ModelRepository"
+    uses_application_service: "AS-ModelStorage"
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -42,11 +26,14 @@ interactions:
   - id: "INT-003"
     path: "VAR-1"
     flow_in_model: "AC-ModelRepository → AC-ModelingWorkspace"
-    # ✍️ Загрузка модели / прошлой ревизии?
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: >
+      Opätovné použitie: pre nového zákazníka sa vezme už vytvorený a overený model
+      z repozitára (3D model library), iba ak to pôvodný zákazník povolil (BR-006).
+      Nový zákazník ho aj tak schvaľuje (PRIN-001).
+    consumer: "AC-ModelingWorkspace"
+    provider: "AC-ModelRepository"
+    uses_application_service: "AS-ModelStorage"
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -54,26 +41,25 @@ interactions:
   - id: "INT-004"
     path: "VAR-1"
     flow_in_model: "AC-ModelingWorkspace → AC-CustomerPortal"
-    # ✍️ Модель показывается клиенту на одобрение? Какой сервис портала:
-    # ✍️ AS-InformingCustomer или AS-CreatingRequest?
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: "Model sa zobrazí zákazníkovi na schválenie."
+    consumer: "AC-ModelingWorkspace"
+    provider: "AC-CustomerPortal"
+    uses_application_service: "AS-InformingCustomer"
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
 
-  # ================= SPOJENIE CIEST =================
   - id: "INT-005"
     path: "VAR-1 / VAR-2"
     flow_in_model: "AC-ModelingWorkspace → AC-ModelValidator"
-    # ✍️ Подтверди: наша модель тоже проходит проверку Model Validator
-    # ✍️ (по модели только он реализует AS-ApprovingModel). Какие данные передаются?
+    description: >
+      Aj náš model po schválení zákazníkom overí ďalší modelár cez Model Validator
+      (kvalita a tlačiteľnosť).
     consumer: "AC-ModelingWorkspace"
     provider: "AC-ModelValidator"
     uses_application_service: "AS-ApprovingModel"
-    information: []
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -81,25 +67,25 @@ interactions:
   - id: "INT-006"
     path: "VAR-1 / VAR-2"
     flow_in_model: "AC-ModelValidator → AC-ModelingWorkspace"
-    # ✍️ Возврат на доработку? Или переход VAR-2 → VAR-1, если модель клиента плохая?
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: >
+      Ak overenie neprešlo a s modelom nie je niečo v poriadku, model sa vráti
+      modelárovi na prepracovanie (BR-005).
+    consumer: "AC-ModelValidator"
+    provider: "AC-ModelingWorkspace"
+    uses_application_service: "AS-ModellingOfComponent"
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
 
-  # ================= CESTA 2: model dodá zákazník =================
   - id: "INT-007"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-Notifier"
-    # ✍️ Подтверди: Model Validator через Notifier сообщает клиенту результат проверки?
-    # ✍️ (В модели "Notification API" #1016 —Serving→ Model Pipeline, пишет DO-Notification.)
+    description: "Zákazník dostane informáciu o tom, čo sa zmenilo (výsledok overenia, chyby v modeli)."
     consumer: "AC-ModelValidator"
     provider: "AC-Notifier"
     uses_application_service: "AS-InformingCustomer"
-    information: []
+    information: ["DO-Notification"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -107,13 +93,11 @@ interactions:
   - id: "INT-008"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-OrderOrchestrator"
-    # ✍️ Сообщает, что модель одобрена и заказ идёт дальше? Или ошибку?
-    # ✍️ (В модели "Event handler" #972 Order Orchestrator —Serving→ Model Pipeline,
-    # ✍️ читает DO-Exception, который пишет Model Pipeline.)
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: "Odovzdá aktuálny stav overenia modelu (OK, chyba a pod.)."
+    consumer: "AC-ModelValidator"
+    provider: "AC-OrderOrchestrator"
+    uses_application_service: "AS-RequestProcessing"
+    information: ["DO-ModelingTask"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
@@ -121,24 +105,28 @@ interactions:
   - id: "INT-009"
     path: "VAR-2"
     flow_in_model: "AC-ModelValidator → AC-Slicer"
-    # ✍️ Это одобрение или уже печать? Если печать — удали.
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    description: >
+      Výnimka: model je príliš veľký pre jednu tlačiareň, rozdelí sa na viac
+      tlačiarní a diely sa potom spoja (súvisí s C-001).
+    consumer: "AC-ModelValidator"
+    provider: "AC-Slicer"
+    uses_application_service: "AS-ApprovingPrintSettings"
+    information: ["DO-3DModel"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null
 
-  # ================= KANÁL ZÁKAZNÍKA =================
   - id: "INT-010"
     path: "VAR-1 / VAR-2"
-    flow_in_model: "Customer portal → Modeler chat (#1031) → Model Pipeline"
-    # ✍️ Через это клиент даёт описание (VAR-1), загружает модель (VAR-2) и/или одобряет?
-    consumer: null
-    provider: null
-    uses_application_service: null
-    information: []
+    flow_in_model: "AC-CustomerPortal → Modeler chat → ACO-ModelPipeline"
+    description: >
+      Univerzálny chat: zákazník môže položiť akúkoľvek otázku (ako podpora). Ak uvedie
+      konkrétnu objednávku, chat sa naviaže na ňu a spojí ho s modelárom, manažérom
+      alebo systémovou podporou. Popis a schémy sa posielajú v samotnej objednávke.
+    consumer: "ACO-ModelPipeline"
+    provider: "AC-CustomerPortal"
+    uses_application_service: "AS-InformingCustomer"
+    information: ["DO-Order"]
     communication_style: "undecided"
     requirements: ["R-001"]
     decision: null

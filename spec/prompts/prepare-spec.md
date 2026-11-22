@@ -1,6 +1,6 @@
 Mode: PREPARE_SPEC
 Change: R-001
-Specification baseline: ✍️ (spec/manifest.yaml → specification.version)
+Specification baseline: 0.1.0
 
 Prečítaj spec/manifest.yaml a registrované podklady v rozsahu úlohy.
 Obrázky zo Sparx EA použi podľa uvedeného baseline a stavu kontroly.

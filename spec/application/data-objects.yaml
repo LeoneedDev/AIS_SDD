@@ -1,62 +1,67 @@
-# =====================================================================
-# spec/application/data-objects.yaml
-# Funkcionalita: 3D model pre zákazku – vytvorenie alebo schválenie modelu
-# Bez databázového návrhu: žiadne tabuľky, stĺpce, indexy.
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-# Mapovanie ID → prvok v modeli Sparx EA
-#   DO-Order        = Data Object "Order"          EA #964
-#   DO-PromptOrder  = Data Object "Prompt Order"   EA #976   (cesta 1)
-#   DO-ModelOrder   = Data Object "Model order"    EA #975   (cesta 2)
-#   DO-3DModel      = Data Object "3D model"       EA #965
-#   BO-Order        = Business Object "Order"      EA #881
-#   BO-3DModel      = Business Object "3D model"   EA #882
-#   ART-PartModelFile = Artifact "Part model file (.stl)" EA #1022
-# =====================================================================
-
 data_objects:
   - id: "DO-Order"
     name: "Order"
-    # ✍️ Что значит для приложения. 1 предложение.
-    meaning: ""
+    meaning: >
+      Samotná objednávka (požiadavka) zákazníka. Nesie k nej patriaci model,
+      kontaktné údaje zákazníka a informácie o platbe.
     related_business_object: "BO-Order"
-    # ✍️ Владелец? В модели пишут Customer UI (Customer portal) и Order API (Order Orchestrator).
-    owner_component: null
-    # ✍️ Есть персональные данные клиента? (в модели есть Constraint GDPR, EA #670)
-    sensitive_data: null
+    owner_component: "AC-OrderOrchestrator"
+    sensitive_data: true
 
   - id: "DO-PromptOrder"
     name: "Prompt Order"
     specialization_of: "DO-Order"
-    # ✍️ Что это (заказ с описанием/схемами, модель делаем мы — VAR-1).
-    meaning: ""
+    meaning: >
+      Objednávka, v ktorej zákazník dodá iba popis alebo schémy dielu; jej typ
+      určuje cestu VAR-1 (model vytvoríme my).
     related_business_object: "BO-Order"
-    # ✍️ Кто создаёт/меняет? В модели write-доступа нет ни у кого.
-    # ✍️ В модели есть отдельный DO "Prompt" (#977, часть DO-Order) — добавить его сюда?
-    owner_component: null
-    sensitive_data: null
+    owner_component: "AC-CustomerPortal"
+    sensitive_data: true
 
   - id: "DO-ModelOrder"
     name: "Model order"
     specialization_of: "DO-Order"
     contains: ["DO-3DModel"]
-    # ✍️ Что это (заказ с готовой моделью клиента — VAR-2).
-    meaning: ""
+    meaning: >
+      Objednávka, v ktorej zákazník dodá hotový 3D model; jej typ určuje cestu
+      VAR-2 (model iba overíme).
     related_business_object: "BO-Order"
-    # ✍️ Кто создаёт/меняет? В модели write-доступа нет ни у кого.
-    owner_component: null
-    sensitive_data: null
+    owner_component: "AC-CustomerPortal"
+    sensitive_data: true
+
+  - id: "DO-ModelingTask"
+    name: "Modeling task"
+    meaning: >
+      Úloha pre 3D modelára k jednej objednávke: ktorý model má vytvoriť
+      alebo overiť a pre koho.
+    related_data_objects: ["DO-Order", "DO-3DModel"]
+    owner_component: "AC-OrderOrchestrator"
+    sensitive_data: false
 
   - id: "DO-3DModel"
     name: "3D model"
-    # ✍️ Что это для приложения. 1 предложение.
-    meaning: ""
+    meaning: >
+      Súbor 3D modelu spolu s informáciami potrebnými pre 3D tlač: metadáta,
+      rozmery a ďalšie údaje o modeli.
     related_business_object: "BO-3DModel"
     realized_by_artifact: "ART-PartModelFile"
-    # ✍️ Владелец — AC-ModelValidator (единственный write)? А кто пишет модель в VAR-1?
-    # ✍️ У Modeling Workspace в модели нет write к DO-3DModel — добавить?
-    owner_component: null
-    sensitive_data: null
+    owner_component: "AC-ModelValidator"
+    sensitive_data: false
 
-# ✍️ Где хранится состояние одобрения («ждёт / одобрено / отклонено», номер ревизии)?
-# ✍️   a) состояния DO-3DModel   b) новый Data Object (например "Model approval") — тогда и в модель
+  - id: "DO-ModelApproval"
+    name: "Model approval"
+    meaning: >
+      Aktuálny stav schválenia modelu a história jeho revízií: koľko úprav
+      prebehlo, aké to boli a kto ich urobil.
+    related_data_objects: ["DO-3DModel"]
+    owner_component: "AC-ModelingWorkspace"
+    sensitive_data: true
+
+  - id: "DO-Notification"
+    name: "Notification"
+    meaning: >
+      Informácia pre zákazníka o tom, čo sa v jeho objednávke alebo modeli zmenilo;
+      doručuje sa do účtu, prípadne e-mailom alebo SMS (QR-001).
+    related_data_objects: ["DO-Order"]
+    owner_component: "AC-Notifier"
+    sensitive_data: true

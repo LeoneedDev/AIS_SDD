@@ -1,16 +1,22 @@
 # =====================================================================
 # spec/requirements/quality-requirements.yaml
 # Nie-funkčné požiadavky. Čísla NEODHADUJ – ak nie sú schválené, zapíš otvorenú otázku.
+# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
 # =====================================================================
 
-quality_requirements: []
-#  - id: "QR-001"
-#    category: ""        # ✍️ auditability / security / performance / availability
-#    statement: ""
-#    measure: ""
-#    owner: null
-#    status: "draft"
-
-open_questions:
-  # ✍️ Napr. constraint GDPR z modelu – týka sa dát zákazníka v tejto funkcii?
-  - ""
+quality_requirements:
+  - id: "QR-001"
+    category: "security / privacy (GDPR)"
+    statement: >
+      Systém uchováva o zákazníkovi iba minimum osobných údajov. Povinný je len
+      účet (login a heslo, voliteľne dvojfaktorové overenie). E-mail a telefónne
+      číslo sú voliteľné. Notifikácie sa vždy doručujú do účtu zákazníka; e-mailom
+      alebo SMS iba na kanály, ktoré zákazník zadal a nevypol.
+    measure: >
+      Objednávku možno vytvoriť a model schváliť bez zadania e-mailu aj telefónu;
+      zákazník dostane notifikáciu o stave aspoň v účte.
+    # z modelu: Constraint "GDPR compliance" (EA #670), Contract "Privacy consent (GDPR)" (EA #825)
+    # ✍️ Владелец? Кандидат: SH-ManagementCEO.
+    owner: null
+    status: "draft"
+    requirements: ["R-001"]

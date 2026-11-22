@@ -1,27 +1,12 @@
-# =====================================================================
-# spec/architecture/migration/implementation-context.yaml
-# Zdroj: "Implementation and Migration Viewpoint" (D63). Bez MD, ceny a harmonogramu.
-# "# ✍️" = otvorená otázka; po vyriešení komentár zmaž.
-#
-# Mapovanie ID → prvok v modeli Sparx EA
-#   PL-ASIS       = Plateau "AS-IS: Current order platform ..."      EA #1078
-#   PL-TRANSITION = Plateau "Transition: B2B accounts, invoicing ..." EA #1079
-#   PL-TOBE       = Plateau "TO-BE: Complete order platform ..."      EA #1080
-#   WP-001..004   = Work Packages        EA #1085, #1086, #1087, #1088
-#   D-001..004    = Deliverables         EA #1081, #1082, #1083, #1084
-#   IE-001..003   = Implementation Events EA #1089, #1090, #1091
-# =====================================================================
-
 implementation:
   current_plateau: "PL-ASIS"
   transition_plateau: "PL-TRANSITION"
   target_plateau: "PL-TOBE"
 
-  # ✍️ R-001 nie je priradený žiadnemu Work Package ani Gap. Patrí funkcia do PL-ASIS
-  # ✍️ (už existuje), alebo Work Package chýba?
-  feature_scope_note: null
+  feature_scope_note: >
+    R-001 nie je v modeli priradený žiadnemu Work Package ani Gap.
+    Tím rozhodol, že pre toto SDD sa Work Package nedopĺňa.
 
-  # ✍️ Všetky prvky majú v EA status "Proposed" – sú schválené?
   work_packages:
     - id: "WP-001"
       name: "Implement company accounts and invoicing"
