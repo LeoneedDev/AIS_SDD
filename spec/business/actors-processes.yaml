@@ -98,5 +98,6 @@ processes:
       či s ním súhlasí.
     outcome: >
       Ak zákazník súhlasí, model ide na potvrdenie ďalšiemu 3D modelárovi, ktorý overí,
-      že je v poriadku. Ak nesúhlasí, model upravíme podľa jeho požiadavky.
+      že je v poriadku. Ak nesúhlasí, uvedie komentár a model upravíme (BR-002).
+      Rozhoduje iba zákazník sám v portáli (BR-003).
     requirements: ["R-001"]

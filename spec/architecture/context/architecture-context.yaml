@@ -1,8 +1,8 @@
 architecture_context:
   baseline: null
   source_model: "EANEWExample.qea (2026-11-22)"
-  status: "draft"
-  reviewed_by: null
+  status: "approved"
+  reviewed_by: "Leonid"
   purpose: >
     Jednoznačné priradenie ID používaných v spec/ k prvkom modelu v Sparx EA.
     Ak je to uvedené, prvok má v EA rovnaký Alias.

@@ -1,0 +1,252 @@
+openapi: "3.1.0"
+info:
+  title: "Model Repository API"
+  version: "0.2.0"
+  description: >
+    Ukladanie a čítanie 3D modelov a vyhľadanie modelov na opätovné použitie
+    (R-001). Poskytuje AC-ModelRepository – jediný zapisovateľ DO-3DModel.
+  x-sdd:
+    status: "approved"
+    approved_by: "Leonid"
+    mode: "DESIGN_CONTRACT"
+    requirement: "R-001"
+    specification_baseline: "0.1.0"
+    provider_component: "AC-ModelRepository"
+    application_service: "AS-ModelStorage"
+    policy: "spec/policies/contract-design-profile.yaml"
+
+servers:
+  - url: "/api/model_repository"
+
+security:
+  - bearer_auth: []
+
+paths:
+  /orders/{order_id}/model_versions:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - name: "order_id"
+        in: "path"
+        required: true
+        schema: { type: "string", format: "uuid" }
+    post:
+      operationId: "upload_model_version"
+      summary: "Nahrať novú verziu modelu k objednávke"
+      description: >
+        Jedna objednávka = jeden model; každé nahranie vytvorí jeho novú verziu.
+        Zákazník (VAR-2) nahráva vlastný model – nie je to revízia a je bezplatné
+        do limitu 10 nahraní v sledovanom období; potom vráti 429 a model sa
+        neoverí, kým zákazník nedoplatí opätovné overenie (BR-004).
+        Modelár nahráva nový model alebo revíziu (INT-002); limit sa naňho
+        nevzťahuje. Po začatí tlače nahranie nie je možné.
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler"]
+        roles_source: "BR-004 (zákazník nahráva vlastný model), BR-007 (úpravy robí modelár)"
+        rules: ["BR-004", "BR-007"]
+        data_objects: ["DO-3DModel", "DO-ModelOrder"]
+        interactions: ["INT-002"]
+        scenarios: ["SC-001-03", "SC-001-05", "SC-001-11"]
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                file:
+                  type: "string"
+                  contentMediaType: "application/octet-stream"
+                  description: "Súbor modelu, napr. .stl (ART-PartModelFile)."
+                description: { type: "string", maxLength: 4000 }
+              required: ["file"]
+      responses:
+        "201":
+          description: "Nová verzia modelu uložená."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/model_version" }
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409":
+          description: >
+            Tlač už začala, model nemožno meniť
+            (problem type urn:problem:print_already_started).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/problem" }
+        "429":
+          description: >
+            Limit vlastných nahraní je vyčerpaný; ďalšie overenie je za doplatok
+            (problem type urn:problem:upload_limit_reached, BR-004, SC-001-11).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/upload_limit_problem" }
+
+  /reusable_models:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+    get:
+      operationId: "search_reusable_models"
+      summary: "Nájsť overený model na opätovné použitie"
+      description: >
+        Vráti iba overené modely, ktorých pôvodný zákazník povolil zdieľanie
+        (BR-006). Model bez súhlasu so zdieľaním sa nikdy nevráti (SC-001-07).
+      x-sdd:
+        allowed_roles: ["modeler", "manager"]
+        roles_source: "BP-ModelThePart VAR-1 krok 2 (modelár overí repozitár)"
+        rules: ["BR-006"]
+        data_objects: ["DO-3DModel"]
+        interactions: ["INT-003"]
+        scenarios: ["SC-001-06", "SC-001-07"]
+      parameters:
+        - name: "query"
+          in: "query"
+          required: true
+          description: "Text na vyhľadanie podľa popisu dielu."
+          schema: { type: "string", minLength: 1 }
+        - name: "limit"
+          in: "query"
+          required: false
+          schema: { type: "integer", minimum: 1, maximum: 100, default: 20 }
+      responses:
+        "200":
+          description: "Zdieľateľné overené modely."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items: { $ref: "#/components/schemas/model_summary" }
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+
+  /models/{model_id}:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - name: "model_id"
+        in: "path"
+        required: true
+        schema: { type: "string", format: "uuid" }
+    get:
+      operationId: "get_model"
+      summary: "Detail modelu"
+      description: >
+        Zákazník vidí model svojej objednávky (US-001, INT-004). Model iného
+        zákazníka vidí iba zamestnanec a iba ak je zdieľanie povolené (BR-006).
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler", "manager"]
+        roles_source: "US-001, BR-006"
+        rules: ["BR-006"]
+        data_objects: ["DO-3DModel"]
+        interactions: ["INT-003", "INT-004"]
+        scenarios: ["SC-001-01", "SC-001-06"]
+      responses:
+        "200":
+          description: "Model a jeho metadáta."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/model" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+components:
+  securitySchemes:
+    bearer_auth:
+      type: "http"
+      scheme: "bearer"
+
+  parameters:
+    correlation_id:
+      name: "X-Correlation-ID"
+      in: "header"
+      required: false
+      schema: { type: "string" }
+
+  responses:
+    bad_request:
+      description: "Neplatný vstup."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    unauthorized:
+      description: "Chýba alebo je neplatný token."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    forbidden:
+      description: "Rola nemá oprávnenie alebo model nie je zdieľaný."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    not_found:
+      description: "Model neexistuje."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+
+  schemas:
+    problem:
+      type: "object"
+      description: "RFC 9457 problem details."
+      properties:
+        type: { type: "string", format: "uri-reference" }
+        title: { type: "string" }
+        status: { type: "integer" }
+        detail: { type: "string" }
+        instance: { type: "string" }
+      required: ["type", "title", "status"]
+
+    upload_limit_problem:
+      allOf:
+        - $ref: "#/components/schemas/problem"
+        - type: "object"
+          properties:
+            upload_limit: { type: "integer", description: "10 (BR-004)" }
+            uploads_in_period: { type: "integer" }
+            period_ends_at:
+              type: ["string", "null"]
+              format: "date-time"
+              description: "Dĺžka obdobia je v BR-004 zatiaľ UNKNOWN."
+
+    model_version:
+      type: "object"
+      properties:
+        model_id: { type: "string", format: "uuid" }
+        order_id: { type: "string", format: "uuid" }
+        version: { type: "integer", minimum: 1 }
+        uploaded_by_role: { type: "string", enum: ["customer", "modeler"] }
+        uploaded_at: { type: "string", format: "date-time" }
+        customer_uploads_remaining:
+          type: ["integer", "null"]
+          description: "Koľko bezplatných nahraní zákazníkovi ostáva (BR-004)."
+      required: ["model_id", "order_id", "version", "uploaded_by_role", "uploaded_at"]
+
+    model_summary:
+      type: "object"
+      properties:
+        model_id: { type: "string", format: "uuid" }
+        latest_version: { type: "integer", minimum: 1 }
+        description: { type: "string" }
+        dimensions_mm:
+          type: "object"
+          properties:
+            x: { type: "number" }
+            y: { type: "number" }
+            z: { type: "number" }
+      required: ["model_id", "latest_version"]
+
+    model:
+      allOf:
+        - $ref: "#/components/schemas/model_summary"
+        - type: "object"
+          properties:
+            file_format: { type: "string", description: "napr. stl (ART-PartModelFile)" }
+            file_url: { type: "string", format: "uri-reference" }
+            sharing_allowed: { type: "boolean" }
+            metadata:
+              type: "object"
+              additionalProperties: true
+          required: ["file_format", "file_url", "sharing_allowed"]

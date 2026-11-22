@@ -19,9 +19,10 @@ application_components:
       Overuje, že model nemá chyby a dá sa vytlačiť – napr. že rozmery
       zodpovedajú zadaniu (model 30×30 mm, hoci zákazník chce 30×30 cm). Pre každý
       typ tlače (plast, kov, živica, …) a tlačiareň používa vlastný validátor.
+      Model je tu iba počas overovania; overený model sa uloží do Model Repository.
     provides_services: ["AS-ApprovingModel"]
     uses_services: []
-    owns_data_objects: ["DO-3DModel"]
+    owns_data_objects: []
     allowed_dependencies: ["AC-ModelingWorkspace"]
     requirements: ["R-001"]
 
@@ -32,6 +33,7 @@ application_components:
       (nad PostgreSQL); pamätá si, ku ktorej objednávke model patril, a či ho
       zákazník povolil zdieľať (BR-006).
     provides_services: ["AS-ModelStorage"]
+    owns_data_objects: ["DO-3DModel"]
 
   - id: "AC-CustomerPortal"
     name: "Customer portal"

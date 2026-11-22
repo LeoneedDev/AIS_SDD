@@ -107,7 +107,8 @@ interactions:
     flow_in_model: "AC-ModelValidator → AC-Slicer"
     description: >
       Výnimka: model je príliš veľký pre jednu tlačiareň, rozdelí sa na viac
-      tlačiarní a diely sa potom spoja (súvisí s C-001).
+      tlačiarní a diely sa potom spoja (súvisí s C-001). Rozdelenie iba so
+      súhlasom zákazníka (BR-009).
     consumer: "AC-ModelValidator"
     provider: "AC-Slicer"
     uses_application_service: "AS-ApprovingPrintSettings"

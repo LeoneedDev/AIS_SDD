@@ -5,10 +5,11 @@ quality_requirements:
       Systém uchováva o zákazníkovi iba minimum osobných údajov. Povinný je len
       účet (login a heslo, voliteľne dvojfaktorové overenie). E-mail a telefónne
       číslo sú voliteľné. Notifikácie sa vždy doručujú do účtu zákazníka; e-mailom
-      alebo SMS iba na kanály, ktoré zákazník zadal a nevypol.
+      alebo SMS iba na kanály, ktoré zákazník zadal a nevypol. Zákazník vidí pri
+      zmenách modelu ID a prezývku (skrátené meno) zamestnanca, nikdy jeho celé meno.
     measure: >
       Objednávku možno vytvoriť a model schváliť bez zadania e-mailu aj telefónu;
       zákazník dostane notifikáciu o stave aspoň v účte.
     owner: "SH-ManagementCEO"
-    status: "draft"
+    status: "approved"
     requirements: ["R-001"]

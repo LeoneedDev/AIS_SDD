@@ -13,21 +13,24 @@ business_rules:
     title: "Dve bezplatné revízie, potom nový vývoj"
     type: "rule"
     statement: >
-      Revízia je úprava modelu, ktorú na žiadosť zákazníka urobia naši 3D modelári
-      (aj oprava chýb v modeli zákazníka pri VAR-2). Zákazník má k dispozícii
-      2 bezplatné revízie na oboch cestách. Ďalšia požadovaná úprava sa už
-      neúčtuje ako revízia, ale ako vývoj nového modelu (nová platba a nový
-      záznam schválenia).
+      Revízia je úprava modelu, ktorú urobia naši 3D modelári potom, čo zákazník
+      s naším modelom nesúhlasil a uviedol komentár (aj oprava chýb v modeli
+      zákazníka pri VAR-2). Zákazník si sám ľubovoľnú úpravu objednať nemôže;
+      nové požiadavky pošle ako novú objednávku s popisom, schémou alebo modelom.
+      Zákazník má k dispozícii 2 bezplatné revízie na oboch cestách. Ďalší
+      nesúhlas sa už nerieši ako revízia, ale ako vývoj nového modelu (nová
+      platba a nový záznam schválenia).
     owner: "SH-Manager"
     requirements: ["R-001"]
     scenarios: ["SC-001-02", "SC-001-05"]
 
   - id: "BR-003"
-    title: "Schválenie modelu zaznamenáva iba oprávnená osoba"
+    title: "O schválení modelu rozhoduje iba zákazník"
     type: "rule"
     statement: >
-      Schválenie modelu udeľuje zákazník. Do systému ho zaznamená 3D modelár
-      alebo manažér v Modeling Workspace na základe súhlasu zákazníka.
+      Zákazník v portáli sám potvrdí, že s modelom (a s našimi zmenami) súhlasí,
+      alebo nesúhlasí a uvedie komentár, s čím nesúhlasí. 3D modelár ani manažér
+      za zákazníka rozhodnúť nemôžu.
     owner: "SH-Manager"
     requirements: ["R-001"]
     scenarios: ["SC-001-01"]
@@ -38,19 +41,21 @@ business_rules:
     statement: >
       Zákazník môže pred tlačou sám nahrať nový model alebo zmeniť objednávku;
       takáto zmena nie je revízia a je bezplatná, model sa iba znova overí.
-      Počet nových nahraní je obmedzený (príklad autora: 10). Po dosiahnutí limitu
-      sa zákazník musí rozhodnúť, či model tlačiť, alebo ďalšie zmeny zaplatí.
-      Po začatí tlače zmena nie je možná.
+      Limit sa uplatní automaticky: po 10 nových nahraniach v sledovanom období
+      sa ďalší model bez doplatku za opätovné overenie neoverí. Dĺžka obdobia
+      (napr. 1 deň alebo 10 dní) je zatiaľ UNKNOWN. Po začatí tlače zmena nie je možná.
     owner: "SH-Manager"
     requirements: ["R-001"]
-    scenarios: []
+    scenarios: ["SC-001-11"]
 
   - id: "BR-005"
     title: "Oprava modelu iba so súhlasom zákazníka"
     type: "rule"
     statement: >
       Ak s modelom nie je niečo v poriadku, opravíme ho, ale najprv sa zákazníka
-      opýtame, či chce, aby sme ho opravili. Bez jeho súhlasu model neupravujeme.
+      opýtame, či chce, aby sme ho opravili. Súhlas alebo nesúhlas zadáva zákazník
+      sám; bez jeho súhlasu model neupravujeme. Opravený model zákazník potom
+      schvaľuje (BR-003).
     owner: "SH-ManagementCEO"
     requirements: ["R-001"]
     scenarios: ["SC-001-04", "SC-001-08"]
@@ -88,3 +93,16 @@ business_rules:
     owner: "SH-Manager"
     requirements: ["R-001"]
     scenarios: ["SC-001-03"]
+
+  - id: "BR-009"
+    title: "Rozdelenie modelu na časti iba so súhlasom zákazníka"
+    type: "rule"
+    statement: >
+      Ak je model príliš veľký na tlač v celku (C-001), pred rozdelením na časti
+      sa zákazníka opýtame, či s rozdelením súhlasí; rozhodnutie zadáva zákazník
+      sám. Bez jeho súhlasu sa model
+      nerozdelí ani nevytlačí; v celku ho vytlačiť nevieme, preto zákazníkovi
+      oznámime, že takúto objednávku nevieme vykonať.
+    owner: "SH-Manager"
+    requirements: ["R-001"]
+    scenarios: ["SC-001-09", "SC-001-10"]

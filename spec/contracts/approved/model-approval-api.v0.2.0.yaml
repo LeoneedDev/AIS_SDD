@@ -1,0 +1,536 @@
+openapi: "3.1.0"
+info:
+  title: "Model Approval API"
+  version: "0.2.0"
+  description: >
+    Schvaľovanie 3D modelu zákazníkom pred tlačou (R-001): stav schválenia,
+    revízie a rozhodnutia zákazníka. Všetko patrí k jednej objednávke
+    (jedna objednávka = jeden model). Poskytuje AC-ModelingWorkspace.
+  x-sdd:
+    status: "approved"
+    approved_by: "Leonid"
+    mode: "DESIGN_CONTRACT"
+    requirement: "R-001"
+    specification_baseline: "0.1.0"
+    provider_component: "AC-ModelingWorkspace"
+    application_service: "AS-ModellingOfComponent"
+    policy: "spec/policies/contract-design-profile.yaml"
+    concurrency: >
+      Platí prvá požiadavka, ktorá príde. Každý prechod stavu sa vykoná iba
+      z povoleného stavu; súbežná alebo opakovaná požiadavka dostane 409
+      invalid_state_transition s aktuálnym stavom.
+
+servers:
+  - url: "/api/modeling_workspace"
+
+security:
+  - bearer_auth: []
+
+tags:
+  - name: "model_approvals"
+    description: "Schválenie modelu a revízie (DO-ModelApproval, časť DO-Order)."
+  - name: "customer_consents"
+    description: "Súhlas zákazníka s opravou alebo rozdelením modelu (BR-005, BR-009)."
+
+paths:
+  /orders/{order_id}/model_approvals:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+    post:
+      tags: ["model_approvals"]
+      operationId: "create_model_approval"
+      summary: "Poslať model zákazníkovi na schválenie"
+      description: >
+        Vytvorí záznam schválenia v stave waiting_for_review a zákazník dostane
+        notifikáciu (INT-004). Model môže byť nový, opätovne použitý z repozitára
+        (BR-006) alebo opravený model zákazníka (BR-005, BR-008). Po stave
+        closed_new_development sa týmto vytvorí nový záznam pre nový platený
+        vývoj (BR-002).
+      x-sdd:
+        allowed_roles: ["modeler", "manager"]
+        roles_source: "ACT-3DModeler (vytvára a odovzdáva model), responsibility_escalation (manažér)"
+        rules: ["BR-001", "BR-002", "BR-005", "BR-006", "BR-008"]
+        data_objects: ["DO-ModelApproval", "DO-3DModel", "DO-Notification"]
+        interactions: ["INT-004"]
+        scenarios: ["SC-001-01", "SC-001-02", "SC-001-05", "SC-001-06"]
+        lifecycle_transition: "→ waiting_for_review (initial_state)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model_approval_create"
+      responses:
+        "201":
+          description: "Záznam schválenia vytvorený."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_approval"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409":
+          description: >
+            K objednávke už existuje aktívny (neukončený) záznam schválenia
+            (problem type urn:problem:active_approval_exists).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/problem"
+    get:
+      tags: ["model_approvals"]
+      operationId: "list_model_approvals"
+      summary: "Všetky záznamy schválenia objednávky (najnovší prvý)"
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler", "manager"]
+        roles_source: "US-001, ACT-3DModeler, ACT-Manager; stav vidia obe strany (lifecycle note)"
+        rules: ["BR-002", "QR-001"]
+        data_objects: ["DO-ModelApproval"]
+        scenarios: ["SC-001-01", "SC-001-02", "SC-001-05"]
+      responses:
+        "200":
+          description: "Zoznam záznamov schválenia."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/model_approval"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+  /orders/{order_id}/model_approvals/{model_approval_id}:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+      - $ref: "#/components/parameters/model_approval_id"
+    get:
+      tags: ["model_approvals"]
+      operationId: "get_model_approval"
+      summary: "Stav schválenia a história"
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler", "manager"]
+        roles_source: "US-001, ACT-3DModeler, ACT-Manager"
+        rules: ["BR-002", "QR-001"]
+        data_objects: ["DO-ModelApproval"]
+        scenarios: ["SC-001-01", "SC-001-02", "SC-001-05"]
+      responses:
+        "200":
+          description: "Záznam schválenia."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_approval"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+  /orders/{order_id}/model_approvals/{model_approval_id}/review_starts:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+      - $ref: "#/components/parameters/model_approval_id"
+    post:
+      tags: ["model_approvals"]
+      operationId: "start_review"
+      summary: "Zákazník otvoril model v portáli"
+      description: >
+        Portál zavolá pri prvom otvorení modelu zákazníkom. Prechod
+        waiting_for_review → in_review; modelár tak vidí, že zákazník model
+        a naše zmeny videl.
+      x-sdd:
+        allowed_roles: ["customer_own_order"]
+        roles_source: "lifecycle trigger „zákazník otvoril model v portáli“"
+        rules: []
+        data_objects: ["DO-ModelApproval"]
+        scenarios: ["SC-001-01", "SC-001-05"]
+        lifecycle_transition: "waiting_for_review → in_review"
+      responses:
+        "200":
+          description: "Stav je in_review."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_approval"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409": { $ref: "#/components/responses/invalid_state_transition" }
+
+  /orders/{order_id}/model_approvals/{model_approval_id}/approvals:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+      - $ref: "#/components/parameters/model_approval_id"
+    post:
+      tags: ["model_approvals"]
+      operationId: "approve_model"
+      summary: "Zákazník súhlasí s modelom"
+      description: >
+        Zákazník sám potvrdí súhlas s modelom a s našimi zmenami (BR-003).
+        Prechod in_review → approved. Schválený model ide na kontrolu
+        tlačiteľnosti ďalšiemu modelárovi (INT-005).
+      x-sdd:
+        allowed_roles: ["customer_own_order"]
+        roles_source: "BR-003"
+        rules: ["BR-001", "BR-003"]
+        data_objects: ["DO-ModelApproval"]
+        interactions: ["INT-005"]
+        scenarios: ["SC-001-01"]
+        lifecycle_transition: "in_review → approved"
+      responses:
+        "200":
+          description: "Stav je approved."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_approval"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409": { $ref: "#/components/responses/invalid_state_transition" }
+
+  /orders/{order_id}/model_approvals/{model_approval_id}/rejections:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+      - $ref: "#/components/parameters/model_approval_id"
+    post:
+      tags: ["model_approvals"]
+      operationId: "reject_model"
+      summary: "Zákazník nesúhlasí s modelom a uvedie komentár"
+      description: >
+        Prechod in_review → rejected; modelár model upraví ako revíziu.
+        Ak už boli využité 2 bezplatné revízie, záznam pokračuje
+        rejected → closed_new_development a odpoveď má
+        new_paid_development_required = true (BR-002). Zákazník je informovaný
+        cez AC-Notifier.
+      x-sdd:
+        allowed_roles: ["customer_own_order"]
+        roles_source: "BR-003"
+        rules: ["BR-002", "BR-003", "BR-007"]
+        data_objects: ["DO-ModelApproval", "DO-Notification"]
+        scenarios: ["SC-001-05", "SC-001-02"]
+        lifecycle_transition: "in_review → rejected; rejected → closed_new_development (počet revízií = 2)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/rejection_input"
+      responses:
+        "200":
+          description: "Stav je rejected alebo closed_new_development."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/rejection_result"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409": { $ref: "#/components/responses/invalid_state_transition" }
+
+  /orders/{order_id}/model_approvals/{model_approval_id}/revisions:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+      - $ref: "#/components/parameters/model_approval_id"
+    post:
+      tags: ["model_approvals"]
+      operationId: "submit_revision"
+      summary: "Modelár pošle upravený model ako novú revíziu"
+      description: >
+        Prechod rejected → waiting_for_review, revision_count + 1. Povolené iba
+        pri revision_count < 2 (BR-002). Model upravuje iba náš 3D modelár
+        (BR-007); novú verziu modelu najprv uloží cez Model Repository API
+        (upload_model_version).
+      x-sdd:
+        allowed_roles: ["modeler"]
+        roles_source: "BR-007"
+        rules: ["BR-002", "BR-007"]
+        data_objects: ["DO-ModelApproval", "DO-3DModel", "DO-Notification"]
+        interactions: ["INT-002", "INT-004"]
+        scenarios: ["SC-001-05"]
+        lifecycle_transition: "rejected → waiting_for_review (guard: počet revízií < 2)"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/revision_input"
+      responses:
+        "200":
+          description: "Nová revízia čaká na zákazníka."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_approval"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409": { $ref: "#/components/responses/invalid_state_transition" }
+
+  /orders/{order_id}/customer_consents:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - $ref: "#/components/parameters/order_id"
+    post:
+      tags: ["customer_consents"]
+      operationId: "record_customer_consent"
+      summary: "Zákazník súhlasí / nesúhlasí s opravou alebo rozdelením modelu"
+      description: >
+        model_fix: súhlas s opravou chýb (BR-005); bez súhlasu sa model
+        neupravuje. Opravený model potom zákazník schvaľuje (create_model_approval).
+        model_split: súhlas s rozdelením príliš veľkého modelu (BR-009, C-001);
+        pri nesúhlase sa model nerozdelí ani nevytlačí a zákazník dostane
+        informáciu, že objednávku nevieme vykonať (order_can_be_fulfilled = false).
+        Rozhodnutie zadáva iba zákazník sám.
+      x-sdd:
+        allowed_roles: ["customer_own_order"]
+        roles_source: "BR-005, BR-009"
+        rules: ["BR-005", "BR-009", "C-001"]
+        data_objects: ["DO-ModelApproval", "DO-Order", "DO-Notification"]
+        interactions: ["INT-006", "INT-009"]
+        scenarios: ["SC-001-04", "SC-001-08", "SC-001-09", "SC-001-10"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/customer_consent_input"
+      responses:
+        "201":
+          description: "Rozhodnutie zákazníka zaznamenané."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/customer_consent"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409":
+          description: >
+            K objednávke nie je otvorená otázka na tento typ súhlasu alebo už bola
+            zodpovedaná (problem type urn:problem:no_open_consent_question).
+          content:
+            application/problem+json:
+              schema:
+                $ref: "#/components/schemas/problem"
+    get:
+      tags: ["customer_consents"]
+      operationId: "list_customer_consents"
+      summary: "Rozhodnutia zákazníka k objednávke"
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler", "manager"]
+        roles_source: "BR-005, BR-009, ACT-3DModeler, ACT-Manager"
+        rules: ["BR-005", "BR-009"]
+        data_objects: ["DO-ModelApproval", "DO-Order"]
+        scenarios: ["SC-001-04", "SC-001-09", "SC-001-10"]
+      responses:
+        "200":
+          description: "Zoznam rozhodnutí."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items:
+                  $ref: "#/components/schemas/customer_consent"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+components:
+  securitySchemes:
+    bearer_auth:
+      type: "http"
+      scheme: "bearer"
+      description: >
+        Token z prihlásenia (login a heslo, voliteľne 2FA); frontend ho posiela
+        s každou požiadavkou (contract-design-profile).
+
+  parameters:
+    correlation_id:
+      name: "X-Correlation-ID"
+      in: "header"
+      required: false
+      schema: { type: "string" }
+    order_id:
+      name: "order_id"
+      in: "path"
+      required: true
+      schema: { type: "string", format: "uuid" }
+    model_approval_id:
+      name: "model_approval_id"
+      in: "path"
+      required: true
+      schema: { type: "string", format: "uuid" }
+
+  responses:
+    bad_request:
+      description: "Neplatný vstup."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    unauthorized:
+      description: "Chýba alebo je neplatný token."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    forbidden:
+      description: "Rola nemá oprávnenie alebo objednávka nepatrí zákazníkovi."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    not_found:
+      description: "Objednávka alebo záznam neexistuje."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    invalid_state_transition:
+      description: >
+        Prechod nie je v aktuálnom stave povolený, napr. iný používateľ ho už
+        vykonal skôr (problem type urn:problem:invalid_state_transition).
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+
+  schemas:
+    problem:
+      type: "object"
+      description: "RFC 9457 problem details."
+      properties:
+        type: { type: "string", format: "uri-reference" }
+        title: { type: "string" }
+        status: { type: "integer" }
+        detail: { type: "string" }
+        instance: { type: "string" }
+        current_state: { $ref: "#/components/schemas/approval_state" }
+      required: ["type", "title", "status"]
+
+    approval_state:
+      type: "string"
+      enum: ["waiting_for_review", "in_review", "approved", "rejected", "closed_new_development"]
+
+    model_origin:
+      type: "string"
+      description: >
+        new_model – vytvorený nami (VAR-1); reused_model – použitý z repozitára
+        so súhlasom vlastníka (BR-006); fixed_customer_model – model zákazníka
+        opravený s jeho súhlasom (VAR-2, BR-005, BR-008).
+      enum: ["new_model", "reused_model", "fixed_customer_model"]
+
+    model_approval_create:
+      type: "object"
+      properties:
+        model_version: { type: "integer", minimum: 1 }
+        model_origin: { $ref: "#/components/schemas/model_origin" }
+        note: { type: "string", maxLength: 2000, description: "Čo sme zmenili – vidí zákazník." }
+      required: ["model_version", "model_origin"]
+
+    employee_ref:
+      type: "object"
+      description: "Zamestnanec, ktorého vidí zákazník: ID a prezývka, nikdy celé meno (QR-001)."
+      properties:
+        employee_id: { type: "string" }
+        nickname: { type: "string" }
+      required: ["employee_id", "nickname"]
+
+    model_approval:
+      type: "object"
+      properties:
+        model_approval_id: { type: "string", format: "uuid" }
+        order_id: { type: "string", format: "uuid" }
+        model_id: { type: "string", format: "uuid" }
+        model_version: { type: "integer", minimum: 1 }
+        model_origin: { $ref: "#/components/schemas/model_origin" }
+        state: { $ref: "#/components/schemas/approval_state" }
+        revision_count: { type: "integer", minimum: 0, maximum: 2 }
+        free_revisions_remaining: { type: "integer", minimum: 0, maximum: 2 }
+        history:
+          type: "array"
+          items: { $ref: "#/components/schemas/approval_history_entry" }
+        created_at: { type: "string", format: "date-time" }
+        updated_at: { type: "string", format: "date-time" }
+      required: ["model_approval_id", "order_id", "model_id", "model_version",
+                 "model_origin", "state", "revision_count", "free_revisions_remaining",
+                 "history", "created_at", "updated_at"]
+
+    approval_history_entry:
+      type: "object"
+      description: "Kto a kedy čo urobil; história ostáva v objednávke."
+      properties:
+        event:
+          type: "string"
+          enum: ["sent_for_approval", "review_started", "approved", "rejected",
+                 "revision_submitted", "closed_new_development"]
+        occurred_at: { type: "string", format: "date-time" }
+        actor_role: { type: "string", enum: ["customer", "modeler", "manager"] }
+        employee:
+          oneOf:
+            - $ref: "#/components/schemas/employee_ref"
+            - type: "null"
+          description: "Vyplnené iba pri udalosti zamestnanca."
+        model_version: { type: "integer", minimum: 1 }
+        comment: { type: ["string", "null"] }
+      required: ["event", "occurred_at", "actor_role"]
+
+    rejection_input:
+      type: "object"
+      properties:
+        comment:
+          type: "string"
+          minLength: 1
+          maxLength: 4000
+          description: "S čím zákazník nesúhlasí."
+      required: ["comment"]
+
+    rejection_result:
+      allOf:
+        - $ref: "#/components/schemas/model_approval"
+        - type: "object"
+          properties:
+            new_paid_development_required:
+              type: "boolean"
+              description: >
+                true = bezplatné revízie sú vyčerpané, ďalšia úprava je nový platený
+                vývoj s novým záznamom schválenia (BR-002, SC-001-02).
+          required: ["new_paid_development_required"]
+
+    revision_input:
+      type: "object"
+      properties:
+        model_version: { type: "integer", minimum: 1 }
+        note: { type: "string", maxLength: 2000, description: "Čo sme zmenili – vidí zákazník." }
+      required: ["model_version"]
+
+    consent_type:
+      type: "string"
+      enum: ["model_fix", "model_split"]
+
+    customer_consent_input:
+      type: "object"
+      properties:
+        consent_type: { $ref: "#/components/schemas/consent_type" }
+        decision: { type: "string", enum: ["granted", "refused"] }
+      required: ["consent_type", "decision"]
+
+    customer_consent:
+      allOf:
+        - $ref: "#/components/schemas/customer_consent_input"
+        - type: "object"
+          properties:
+            customer_consent_id: { type: "string", format: "uuid" }
+            order_id: { type: "string", format: "uuid" }
+            model_id: { type: "string", format: "uuid" }
+            recorded_at: { type: "string", format: "date-time" }
+            order_can_be_fulfilled:
+              type: "boolean"
+              description: "false pri model_split + refused (BR-009, SC-001-10)."
+          required: ["customer_consent_id", "order_id", "model_id", "recorded_at", "order_can_be_fulfilled"]

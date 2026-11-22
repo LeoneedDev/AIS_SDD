@@ -1,5 +1,5 @@
 contract_design_profile:
-  status: "draft"
+  status: "approved"
   approved_by: Leonid
   http:
     style: "REST"

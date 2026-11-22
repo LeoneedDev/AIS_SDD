@@ -3,7 +3,8 @@ data_objects:
     name: "Order"
     meaning: >
       Samotná objednávka (požiadavka) zákazníka. Nesie k nej patriaci model,
-      kontaktné údaje zákazníka a informácie o platbe.
+      kontaktné údaje zákazníka, informácie o platbe a celú históriu schvaľovania,
+      zmien, súhlasov a nesúhlasov zákazníka. Jedna objednávka = jeden model.
     related_business_object: "BO-Order"
     owner_component: "AC-OrderOrchestrator"
     sensitive_data: true
@@ -45,14 +46,19 @@ data_objects:
       rozmery a ďalšie údaje o modeli.
     related_business_object: "BO-3DModel"
     realized_by_artifact: "ART-PartModelFile"
-    owner_component: "AC-ModelValidator"
+    owner_component: "AC-ModelRepository"
+    note: >
+      Počas overovania je model v Model Validator (medzistav); overený model
+      sa uloží do Model Repository.
     sensitive_data: false
 
   - id: "DO-ModelApproval"
     name: "Model approval"
     meaning: >
-      Aktuálny stav schválenia modelu a história jeho revízií: koľko úprav
-      prebehlo, aké to boli a kto ich urobil.
+      Aktuálny stav schválenia modelu a história: koľko úprav prebehlo, aké to
+      boli, kto ich urobil, komentáre zákazníka a jeho súhlasy s opravou alebo
+      rozdelením modelu (BR-005, BR-009).
+    part_of: "DO-Order"
     related_data_objects: ["DO-3DModel"]
     owner_component: "AC-ModelingWorkspace"
     sensitive_data: true

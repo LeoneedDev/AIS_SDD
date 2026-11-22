@@ -1,17 +1,19 @@
 lifecycles:
   - data_object: "DO-ModelApproval"
     note: >
-      Stav je jeden pre všetkých; "čakáme na zákazníka" / "čakáme na modelára"
-      je len popis toho istého stavu v UI.
+      Stav je jeden a vidí ho zákazník aj modelár. Vďaka in_review modelár vie,
+      či zákazník model (a naše zmeny) vôbec otvoril, alebo ešte notifikáciu
+      nevidel. Rozhodnutia zákazníka sa ukladajú v histórii záznamu, ktorý patrí
+      k objednávke (DO-Order).
     states:
       - name: "waiting_for_review"
-        description: "Model odoslaný zákazníkovi, čaká na jeho reakciu."
+        description: "Model odoslaný zákazníkovi, zákazník ho ešte neotvoril."
       - name: "in_review"
-        description: "Zákazník model posudzuje."
+        description: "Zákazník model otvoril a rozhoduje sa."
       - name: "approved"
         description: "Zákazník súhlasí s modelom."
       - name: "rejected"
-        description: "Zákazník žiada úpravu modelu."
+        description: "Zákazník s modelom nesúhlasí a uviedol komentár."
       - name: "closed_new_development"
         description: >
           Bezplatné revízie sú vyčerpané; ďalšia úprava sa rieši ako nový platený
@@ -21,18 +23,19 @@ lifecycles:
     transitions:
       - from: "waiting_for_review"
         to: "in_review"
-        trigger: "zákazník začal model posudzovať"
+        trigger: "zákazník otvoril model v portáli"
         requirements: ["R-001"]
 
       - from: "in_review"
         to: "approved"
-        trigger: "zákazník súhlasí; súhlas zaznamená 3D modelár alebo manažér"
+        trigger: "zákazník v portáli potvrdí súhlas"
         guard_rules: ["BR-003"]
         requirements: ["R-001"]
 
       - from: "in_review"
         to: "rejected"
-        trigger: "zákazník žiada úpravu modelu"
+        trigger: "zákazník v portáli nesúhlasí a uvedie komentár"
+        guard_rules: ["BR-003"]
         requirements: ["R-001"]
 
       - from: "rejected"
@@ -44,7 +47,7 @@ lifecycles:
 
       - from: "rejected"
         to: "closed_new_development"
-        trigger: "zákazník žiada ďalšiu úpravu po 2 bezplatných revíziách"
+        trigger: "zákazník nesúhlasí aj po 2 bezplatných revíziách"
         guard: "počet revízií = 2"
         guard_rules: ["BR-002"]
         requirements: ["R-001"]

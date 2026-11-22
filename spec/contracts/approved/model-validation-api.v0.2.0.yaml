@@ -1,0 +1,184 @@
+openapi: "3.1.0"
+info:
+  title: "Model Validation API"
+  version: "0.2.0"
+  description: >
+    Technická kontrola 3D modelu – chyby a tlačiteľnosť pre zvolený typ tlače
+    (R-001). Poskytuje AC-ModelValidator. Nezamieňať so súhlasom zákazníka
+    (glossary: Model approval).
+  x-sdd:
+    status: "approved"
+    approved_by: "Leonid"
+    mode: "DESIGN_CONTRACT"
+    requirement: "R-001"
+    specification_baseline: "0.1.0"
+    provider_component: "AC-ModelValidator"
+    application_service: "AS-ApprovingModel"
+    policy: "spec/policies/contract-design-profile.yaml"
+
+servers:
+  - url: "/api/model_validator"
+
+security:
+  - bearer_auth: []
+
+paths:
+  /model_validations:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+    post:
+      operationId: "create_model_validation"
+      summary: "Overiť model pre zvolený typ tlače"
+      description: >
+        Overí model validátorom pre daný typ tlače. Výsledok passed / failed so
+        zoznamom chýb. Ak sa model nezmestí na tlačiareň, uvedie, či ho slicer
+        vie rozdeliť (INT-009, C-001).
+        Následky podľa cesty:
+        VAR-2 bez chýb – model ide do tlače bez ďalšieho potvrdenia (BR-008),
+        zákazník dostane notifikáciu (INT-007);
+        VAR-2 s chybami – zákazník dostane notifikáciu so zoznamom chýb a otázku
+        na opravu (INT-007, BR-005);
+        schválený model VAR-1 s chybou – model sa vráti modelárovi (INT-006).
+        Stav overenia sa odovzdá Order Orchestratoru (INT-008).
+        Model je vo Validatore iba počas overovania; overený model sa uloží
+        do Model Repository (owner DO-3DModel).
+        Overenie, ktoré by prekročilo limit vlastných nahraní, sa nespustí –
+        zastaví ho už upload_model_version (BR-004).
+      x-sdd:
+        allowed_roles: ["modeler", "manager"]
+        roles_source: "VAR-2 krok „3D modelár ho overí“; BP-ModelThePart VAR-1 krok 5; ACT-Manager"
+        rules: ["BR-001", "BR-005", "BR-008", "BR-009", "C-001"]
+        data_objects: ["DO-3DModel", "DO-Notification", "DO-ModelingTask"]
+        interactions: ["INT-005", "INT-006", "INT-007", "INT-008", "INT-009"]
+        scenarios: ["SC-001-03", "SC-001-04", "SC-001-08", "SC-001-09", "SC-001-10"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/model_validation_input"
+      responses:
+        "201":
+          description: "Overenie dokončené; výsledok sa vráti hneď (synchrónne)."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_validation"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+  /model_validations/{model_validation_id}:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - name: "model_validation_id"
+        in: "path"
+        required: true
+        schema: { type: "string", format: "uuid" }
+    get:
+      operationId: "get_model_validation"
+      summary: "Výsledok overenia"
+      x-sdd:
+        allowed_roles: ["modeler", "manager"]
+        roles_source: "ACT-3DModeler, ACT-Manager; zákazník dostáva výsledok notifikáciou (SC-001-03, SC-001-04)"
+        rules: ["BR-005"]
+        data_objects: ["DO-3DModel"]
+        scenarios: ["SC-001-03", "SC-001-04", "SC-001-08"]
+      responses:
+        "200":
+          description: "Výsledok overenia."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/model_validation"
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+
+components:
+  securitySchemes:
+    bearer_auth:
+      type: "http"
+      scheme: "bearer"
+
+  parameters:
+    correlation_id:
+      name: "X-Correlation-ID"
+      in: "header"
+      required: false
+      schema: { type: "string" }
+
+  responses:
+    bad_request:
+      description: "Neplatný vstup."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    unauthorized:
+      description: "Chýba alebo je neplatný token."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    forbidden:
+      description: "Rola nemá oprávnenie."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    not_found:
+      description: "Model, objednávka alebo overenie neexistuje."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+
+  schemas:
+    problem:
+      type: "object"
+      description: "RFC 9457 problem details."
+      properties:
+        type: { type: "string", format: "uri-reference" }
+        title: { type: "string" }
+        status: { type: "integer" }
+        detail: { type: "string" }
+        instance: { type: "string" }
+      required: ["type", "title", "status"]
+
+    model_validation_input:
+      type: "object"
+      properties:
+        order_id: { type: "string", format: "uuid" }
+        model_id: { type: "string", format: "uuid" }
+        model_version: { type: "integer", minimum: 1 }
+        print_type:
+          type: "string"
+          description: "Typ tlače / tlačiareň (plast, kov, živica …); zoznam hodnôt mimo tohto contractu."
+        path: { type: "string", enum: ["VAR-1", "VAR-2"] }
+      required: ["order_id", "model_id", "model_version", "print_type", "path"]
+
+    model_validation:
+      type: "object"
+      properties:
+        model_validation_id: { type: "string", format: "uuid" }
+        order_id: { type: "string", format: "uuid" }
+        model_id: { type: "string", format: "uuid" }
+        model_version: { type: "integer", minimum: 1 }
+        print_type: { type: "string" }
+        path: { type: "string", enum: ["VAR-1", "VAR-2"] }
+        result: { type: "string", enum: ["passed", "failed"] }
+        errors:
+          type: "array"
+          items:
+            type: "object"
+            properties:
+              code: { type: "string" }
+              message: { type: "string" }
+            required: ["code", "message"]
+        fits_printer:
+          type: "boolean"
+          description: "false = model je príliš veľký na tlač v celku (C-001)."
+        splittable:
+          type: ["boolean", "null"]
+          description: "Iba pri fits_printer = false: slicer vie model rozdeliť (INT-009)."
+        validated_at: { type: "string", format: "date-time" }
+      required: ["model_validation_id", "order_id", "model_id", "model_version",
+                 "print_type", "path", "result", "errors", "fits_printer", "validated_at"]

@@ -1,6 +1,6 @@
 specification:
   version: "0.1.0"
-  status: "draft"
+  status: "approved"
   architecture_baseline: null
   feature: "3D model pre zákazku – vytvorenie alebo schválenie modelu"
   change: "R-001"

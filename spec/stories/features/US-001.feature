@@ -4,25 +4,25 @@ Feature: Schválenie 3D modelu pre zákazku
   Scenario: Zákazník schváli model vytvorený nami
     Given zákazník poslal zaplatenú objednávku s popisom dielu
     And 3D modelár vytvoril model a poslal ho zákazníkovi na schválenie
-    When zákazník s modelom súhlasí
-    And 3D modelár alebo manažér zaznamená jeho súhlas
+    When zákazník model otvorí v portáli
+    And zákazník v portáli potvrdí, že s modelom súhlasí
     Then stav schválenia modelu je "approved"
     And model sa odovzdá ďalšiemu 3D modelárovi na kontrolu tlačiteľnosti
 
-  @SC-001-05 @R-001 @VAR-1 @BR-002 @BR-007
-  Scenario: Zákazník žiada úpravu v rámci bezplatných revízií
+  @SC-001-05 @R-001 @VAR-1 @BR-002 @BR-003 @BR-007
+  Scenario: Zákazník nesúhlasí s modelom v rámci bezplatných revízií
     Given zákazníkovi bol poslaný model na schválenie
     And zákazník zatiaľ využil menej ako 2 bezplatné revízie
-    When zákazník žiada úpravu modelu
+    When zákazník v portáli nesúhlasí s modelom a uvedie komentár
     Then stav schválenia modelu je "rejected"
     And model sa netlačí
     And model upraví náš 3D modelár
     And upravený model sa pošle zákazníkovi ako nová revízia na schválenie
 
-  @SC-001-02 @R-001 @VAR-1 @BR-002
+  @SC-001-02 @R-001 @VAR-1 @BR-002 @BR-003
   Scenario: Bezplatné revízie sú vyčerpané
     Given zákazník už využil 2 bezplatné revízie modelu
-    When zákazník žiada ďalšiu úpravu modelu
+    When zákazník s modelom znova nesúhlasí
     Then stav schválenia modelu je "closed_new_development"
     And zákazník dostane informáciu, že ďalšia úprava je nový platený vývoj modelu
     And pre nový model sa vytvorí nový záznam schválenia
@@ -65,3 +65,26 @@ Feature: Schválenie 3D modelu pre zákazku
     And zákazník dostane notifikáciu so zoznamom chýb
     And zákazník je opýtaný, či chce, aby sme model opravili
     And bez súhlasu zákazníka sa model neupravuje
+
+  @SC-001-09 @R-001 @C-001 @BR-009
+  Scenario: Príliš veľký model sa rozdelí na časti so súhlasom zákazníka
+    Given model je schválený a je príliš veľký na tlač v celku
+    And slicer ho dokáže rozdeliť na časti
+    When zákazníka sa opýtame, či súhlasí s rozdelením modelu
+    And zákazník s rozdelením súhlasí
+    Then model sa rozdelí na časti a časti sa vytlačia samostatne
+
+  @SC-001-10 @R-001 @C-001 @BR-009
+  Scenario: Zákazník nesúhlasí s rozdelením príliš veľkého modelu
+    Given model je schválený a je príliš veľký na tlač v celku
+    When zákazníka sa opýtame, či súhlasí s rozdelením modelu
+    And zákazník s rozdelením nesúhlasí
+    Then model sa nerozdelí ani nevytlačí
+    And zákazník dostane informáciu, že model v celku nevieme vytlačiť a objednávku nevieme vykonať
+
+  @SC-001-11 @R-001 @VAR-2 @BR-004
+  Scenario: Zákazník prekročí limit vlastných nahraní modelu
+    Given zákazník v sledovanom období už 10-krát nahral nový vlastný model
+    When zákazník nahrá ďalší model
+    Then model sa neoverí
+    And zákazník dostane informáciu, že ďalšie overenie je za doplatok

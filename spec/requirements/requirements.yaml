@@ -4,7 +4,8 @@ requirements:
     statement: >
       Systém musí umožniť zákazníkovi pred tlačou skontrolovať 3D model – vytvorený
       nami podľa jeho popisu (VAR-1) alebo dodaný ním a overený nami (VAR-2) – a
-      schváliť ho alebo požiadať o úpravu. Do tlače smie ísť iba schválený model.
+      v portáli sám schváliť alebo s ním nesúhlasiť s komentárom. Do tlače smie ísť
+      iba schválený model.
       Zákazník má k dispozícii 2 bezplatné revízie modelu.
     rationale: >
       Diel sa vyrába ako jediný kus podľa požiadavky zákazníka (G-001); preto sa nič
@@ -13,9 +14,9 @@ requirements:
     source_goals: ["G-001"]
     owner: "SH-Manager"
     priority: "must"
-    status: "draft"
+    status: "approved"
     realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
-    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04", "SC-001-05", "SC-001-06", "SC-001-07", "SC-001-08"]
+    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04", "SC-001-05", "SC-001-06", "SC-001-07", "SC-001-08", "SC-001-09", "SC-001-10", "SC-001-11"]
 
 constraints:
   - id: "C-001"
@@ -23,5 +24,6 @@ constraints:
       Tlačíme iba modely, ktoré sa dajú vytlačiť v rámci možností našich
       tlačiarní. Ak je model príliš veľký, prijmeme ho, keď ho slicer dokáže
       rozdeliť na časti, ktoré sa vytlačia samostatne a potom spoja (INT-009).
+      Model sa rozdelí iba so súhlasom zákazníka (BR-009).
     owner: "SH-ManagementCEO"
-    status: "draft"
+    status: "approved"

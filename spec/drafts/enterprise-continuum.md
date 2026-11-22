@@ -1,6 +1,6 @@
-# Enterprise Continuum – PrintOnDemand (DRAFT)
+# Enterprise Continuum – PrintOnDemand
 
-Stav: návrh na kontrolu. Zdroj údajov: `spec/architecture/continuum/reuse-catalog.yaml`.
+Stav: skontrolované (Leonid, 2026-11-23)
 
 ## 1. Architecture a Solutions Continuum
 
@@ -50,7 +50,7 @@ neodmietali zákazníkov s inými formátmi, model do STL **skonvertujeme**.
 
 | Položka | Obsah |
 |---|---|
-| Nástroj | Claude Code (Opus 5.5) |
+| Nástroj | Claude Code (Opus/Sonnet 5.5) |
 | Dátum | 2026-11-22 |
 | Vstupy | model `EANEWExample.qea` (prvky a väzby), `spec/` súbory, odpovede autora v konverzácii |
 | Postup | AI navrhlo zoznam ABB/SBB kandidátov z prvkov modelu (Postgresql, CAD, Slicer, Payment API, Model Repository, …). Autor ku každému uviedol zdroj, štandard a rozhodnutie. |

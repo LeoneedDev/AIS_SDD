@@ -16,6 +16,12 @@ Porovnávané Plateaus:
 | G3 | Missing support for complaint handling and reprinting (#1067) | Complaint handling and reprint (14 days) (#673) | Transition, TO-BE |
 | G4 | Missing tracking of material stock and its consumption (#1065) | Choosing materials for the print (#1070) | Transition, TO-BE |
 
+## Návrh autora (mimo EA)
+
+| ID | Gap | Stav |
+|---|---|---|
+| G5 | Objednávka s viacerými modelmi: odporúča sa rozdeliť ju na samostatné objednávky (jeden model = jedna objednávka), ak nejde o jeden spoločný diel. | návrh autora, v EA sa nemodeluje |
+
 ## Vzťah k tejto funkcionalite
 
 Žiadny gap v modeli sa neviaže na R-001 (EA #671). Podľa šablóny teda GAP Analysis
