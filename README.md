@@ -30,6 +30,8 @@ Tento repozitár obsahuje iba vybraný specification package, nie celý model.
 | `tests/` | contract, architecture a acceptance tests (US-001.feature) |
 | `reports/` | reporty DESIGN_CONTRACT, IMPLEMENT_CHANGE, VERIFY_CHANGE |
 
+**Ukážka (demo mockupu): [docs/demo/README.md](docs/demo/README.md)**
+
 ## Spustenie
 
 ```bash
