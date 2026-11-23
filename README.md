@@ -24,8 +24,27 @@ Tento repozitár obsahuje iba vybraný specification package, nie celý model.
 | `spec/prompts/` | prompty pre režimy PREPARE_SPEC až VERIFY_CHANGE |
 | `spec/traceability/` | trace väzby Goal, Requirement, ..., contract |
 | `spec/drafts/` | pracovné návrhy AI, nie sú schválené |
-| `src/`, `config/`, `tests/` | realizácia – vznikne až v IMPLEMENT_CHANGE |
-| `reports/` | validation reporty z VERIFY_CHANGE |
+| `src/pod/` | backend (FastAPI), jeden balík na Application Component |
+| `src/portal_mock/` | mockup zákazníckeho portálu a chatu |
+| `config/`, `docker-compose.yml` | konfigurácia a lokálny PostgreSQL |
+| `tests/` | contract, architecture a acceptance tests (US-001.feature) |
+| `reports/` | reporty DESIGN_CONTRACT, IMPLEMENT_CHANGE, VERIFY_CHANGE |
+
+## Spustenie
+
+```bash
+docker compose up -d                                  # PostgreSQL (pod + pod_test)
+python -m venv .venv && .venv/Scripts/pip install -e ".[test]"
+.venv/Scripts/python -m pytest                        # všetky testy
+PYTHONPATH=src .venv/Scripts/python -m pod.dev_seed   # ukážkové objednávky + tokeny
+PYTHONPATH=src .venv/Scripts/uvicorn pod.main:create_app --factory --reload
+```
+
+- Portál (mockup): http://127.0.0.1:8000/portal/ – vlož token a ID objednávky z `dev_seed`.
+- OpenAPI jednotlivých API: `/api/modeling_workspace/docs`, `/api/model_validator/docs`,
+  `/api/model_repository/docs`.
+- Zástupný validátor: súbor so značkou `STUB:ERROR` neprejde, `STUB:TOO_LARGE` sa nezmestí
+  (dá sa rozdeliť), `STUB:TOO_LARGE_UNSPLITTABLE` sa nezmestí ani po rozdelení.
 
 ## Postup
 

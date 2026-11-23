@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintOnDemand – zákaznícky portál (mockup)</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb; --accent:#2f6fde; --ok:#1f8a4c; --bad:#c2410c; }
+  * { box-sizing: border-box; }
+  body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:16px 24px; background:var(--card); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; }
+  header a { color:var(--accent); }
+  main { max-width:880px; margin:24px auto; padding:0 16px; display:grid; gap:16px; }
+  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; }
+  h2 { font-size:15px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
+  label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
+  input[type=text], textarea { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  textarea { min-height:70px; }
+  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:600px) { .row { grid-template-columns:1fr; } }
+  button { font:inherit; padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
+  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
+  button.ok { background:var(--ok); color:#fff; border-color:var(--ok); }
+  button.bad { background:#fff; color:var(--bad); border-color:var(--bad); }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
+  .state { display:inline-block; padding:2px 10px; border-radius:999px; background:#eef2ff; color:var(--accent); font-weight:600; font-size:13px; }
+  .muted { color:var(--muted); font-size:13px; }
+  ol.history { padding-left:20px; margin:8px 0 0; }
+  ol.history li { margin:4px 0; }
+  #log { font:12px/1.4 ui-monospace, monospace; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; max-height:220px; overflow:auto; }
+</style>
+</head>
+<body>
+<header>
+  <h1>PrintOnDemand · môj účet <span class="muted">(mockup portálu)</span></h1>
+  <a href="chat.html">Chat k objednávke →</a>
+</header>
+<main>
+  <section>
+    <h2>Prihlásenie a objednávka</h2>
+    <div class="row">
+      <div><label for="token">Bearer token (z <code>python -m pod.dev_seed</code>)</label><input id="token" type="text"></div>
+      <div><label for="order">ID objednávky</label><input id="order" type="text"></div>
+    </div>
+    <div class="actions"><button class="primary" id="load">Načítať stav</button></div>
+  </section>
+
+  <section id="approval-card" hidden>
+    <h2>Schválenie modelu</h2>
+    <p>Stav: <span class="state" id="state"></span>
+       <span class="muted" id="revisions"></span></p>
+    <p id="model-link" class="muted"></p>
+    <div class="actions">
+      <button id="open">Otvoriť model</button>
+      <button class="ok" id="approve">Súhlasím s modelom</button>
+    </div>
+    <label for="comment" style="margin-top:12px">S čím nesúhlasíte?</label>
+    <textarea id="comment"></textarea>
+    <div class="actions"><button class="bad" id="reject">Nesúhlasím</button></div>
+    <ol class="history" id="history"></ol>
+  </section>
+
+  <section>
+    <h2>Otázky od nás</h2>
+    <p class="muted">Opravu ani rozdelenie modelu nerobíme bez vášho súhlasu.</p>
+    <div class="actions">
+      <button data-consent="model_fix" data-decision="granted">Súhlasím s opravou</button>
+      <button data-consent="model_fix" data-decision="refused">Nesúhlasím s opravou</button>
+      <button data-consent="model_split" data-decision="granted">Súhlasím s rozdelením</button>
+      <button data-consent="model_split" data-decision="refused">Nesúhlasím s rozdelením</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nahrať vlastný model</h2>
+    <p class="muted">Bezplatne do limitu 10 nahraní; potom je opätovné overenie za doplatok.</p>
+    <input type="file" id="file">
+    <div class="actions"><button id="upload">Nahrať</button></div>
+  </section>
+
+  <section>
+    <h2>Odpovede API</h2>
+    <div id="log"></div>
+  </section>
+</main>
+<script>
+const $ = (id) => document.getElementById(id);
+const WS = "/api/modeling_workspace", REPO = "/api/model_repository";
+let current = null;
+
+try { $("token").value = localStorage.getItem("pod.token") || ""; $("order").value = localStorage.getItem("pod.order") || ""; } catch (e) {}
+
+function log(label, status, body) {
+  $("log").textContent = `${label} → ${status}\n${JSON.stringify(body, null, 2)}\n\n` + $("log").textContent;
+}
+
+async function api(method, url, body, isForm) {
+  const headers = { Authorization: "Bearer " + $("token").value.trim(), "X-Correlation-ID": crypto.randomUUID() };
+  if (body && !isForm) headers["Content-Type"] = "application/json";
+  const res = await fetch(url, { method, headers, body: isForm ? body : body ? JSON.stringify(body) : undefined });
+  const data = await res.json().catch(() => ({}));
+  log(`${method} ${url}`, res.status, data);
+  return { ok: res.ok, status: res.status, data };
+}
+
+const order = () => $("order").value.trim();
+
+async function load() {
+  try { localStorage.setItem("pod.token", $("token").value); localStorage.setItem("pod.order", order()); } catch (e) {}
+  const r = await api("GET", `${WS}/orders/${order()}/model_approvals`);
+  if (!r.ok || !r.data.length) { $("approval-card").hidden = true; return; }
+  render(r.data[0]);
+}
+
+function render(a) {
+  current = a;
+  $("approval-card").hidden = false;
+  $("state").textContent = a.state;
+  $("revisions").textContent = ` · revízie: ${a.revision_count}/2, bezplatné ostávajú: ${a.free_revisions_remaining}`;
+  $("history").innerHTML = "";
+  for (const h of a.history) {
+    const li = document.createElement("li");
+    const who = h.employee ? `${h.employee.nickname} (ID ${h.employee.employee_id})` : h.actor_role;
+    li.textContent = `${new Date(h.occurred_at).toLocaleString()} – ${h.event} – ${who}${h.comment ? ": " + h.comment : ""}`;
+    $("history").appendChild(li);
+  }
+}
+
+async function transition(suffix, body) {
+  if (!current) return;
+  const r = await api("POST", `${WS}/orders/${order()}/model_approvals/${current.model_approval_id}/${suffix}`, body);
+  if (r.ok) render(r.data);
+}
+
+$("load").onclick = load;
+$("open").onclick = async () => {
+  if (!current) return;
+  const m = await api("GET", `${REPO}/models/${current.model_id}`);
+  if (m.ok) $("model-link").innerHTML = `Súbor: <a href="${m.data.file_url}" target="_blank">${m.data.file_url}</a>`;
+  if (current.state === "waiting_for_review") await transition("review_starts");
+};
+$("approve").onclick = () => transition("approvals");
+$("reject").onclick = () => transition("rejections", { comment: $("comment").value });
+document.querySelectorAll("[data-consent]").forEach((b) => b.onclick = async () => {
+  await api("POST", `${WS}/orders/${order()}/customer_consents`, { consent_type: b.dataset.consent, decision: b.dataset.decision });
+});
+$("upload").onclick = async () => {
+  const f = $("file").files[0];
+  if (!f) return;
+  const fd = new FormData(); fd.append("file", f);
+  await api("POST", `${REPO}/orders/${order()}/model_versions`, fd, true);
+};
+</script>
+</body>
+</html>

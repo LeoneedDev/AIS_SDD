@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintOnDemand – chat (mockup)</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb; --accent:#2f6fde; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  header { padding:16px 24px; background:var(--card); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { font-size:18px; margin:0; }
+  header a { color:var(--accent); }
+  main { max-width:720px; margin:24px auto; padding:0 16px; }
+  .notice { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:8px; padding:10px 14px; font-size:13px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:10px; display:flex; flex-direction:column; height:70vh; min-height:420px; }
+  .bar { padding:12px 16px; border-bottom:1px solid var(--line); display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .bar input { flex:1; min-width:180px; padding:6px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  #messages { flex:1; overflow:auto; padding:16px; display:flex; flex-direction:column; gap:10px; }
+  .msg { max-width:78%; padding:8px 12px; border-radius:12px; }
+  .me { align-self:flex-end; background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+  .them { align-self:flex-start; background:#eef1f5; border-bottom-left-radius:4px; }
+  .who { font-size:12px; opacity:.75; margin-bottom:2px; }
+  form { display:flex; gap:8px; padding:12px 16px; border-top:1px solid var(--line); }
+  form input { flex:1; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; }
+  button { font:inherit; padding:8px 14px; border-radius:6px; border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Chat s podporou <span style="color:var(--muted);font-size:14px">(mockup)</span></h1>
+  <a href="index.html">← Späť na objednávku</a>
+</header>
+<main>
+  <div class="notice">MOCKUP (INT-010): správy sa nikam neodosielajú a odpovede sú simulované. Chat nie je súčasťou contractu R-001.</div>
+  <div class="card">
+    <div class="bar">
+      <span>Objednávka:</span>
+      <input id="order" type="text" placeholder="voliteľné – ID objednávky">
+    </div>
+    <div id="messages"></div>
+    <form id="form">
+      <input id="text" type="text" placeholder="Napíšte otázku…" autocomplete="off">
+      <button type="submit">Poslať</button>
+    </form>
+  </div>
+</main>
+<script>
+const box = document.getElementById("messages");
+function add(text, mine, who) {
+  const div = document.createElement("div");
+  div.className = "msg " + (mine ? "me" : "them");
+  if (who) { const w = document.createElement("div"); w.className = "who"; w.textContent = who; div.appendChild(w); }
+  div.appendChild(document.createTextNode(text));
+  box.appendChild(div);
+  box.scrollTop = box.scrollHeight;
+}
+try { document.getElementById("order").value = localStorage.getItem("pod.order") || ""; } catch (e) {}
+add("Dobrý deň, s čím vám môžeme pomôcť?", false, "Podpora");
+document.getElementById("form").onsubmit = (e) => {
+  e.preventDefault();
+  const input = document.getElementById("text");
+  const text = input.value.trim();
+  if (!text) return;
+  add(text, true);
+  input.value = "";
+  const order = document.getElementById("order").value.trim();
+  setTimeout(() => {
+    if (order) add(`Vaša otázka je priradená k objednávke ${order.slice(0, 8)}…; odpovie vám modelár, ktorý na nej pracuje.`, false, "jan.m (ID emp-17)");
+    else add("Ďakujeme, ozveme sa čo najskôr. Ak sa otázka týka objednávky, zadajte jej ID hore.", false, "Podpora");
+  }, 700);
+};
+</script>
+</body>
+</html>

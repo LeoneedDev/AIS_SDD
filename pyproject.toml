@@ -1,0 +1,34 @@
+[project]
+name = "print-on-demand-r001"
+version = "0.1.0"
+description = "R-001: schválenie 3D modelu zákazníkom pred tlačou (candidate code podľa approved contractu 0.2.0)"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "sqlalchemy>=2",
+    "psycopg[binary]",
+    "pyjwt",
+    "python-multipart",
+    "pydantic-settings",
+]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["pod*"]
+
+[project.optional-dependencies]
+test = ["pytest", "pytest-bdd", "httpx", "jsonschema", "pyyaml"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+bdd_features_base_dir = "spec/stories/features"
+filterwarnings = [
+    "ignore::pytest.PytestUnknownMarkWarning",
+    "ignore:Using `httpx` with `starlette.testclient` is deprecated",
+]
