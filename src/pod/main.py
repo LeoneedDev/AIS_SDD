@@ -12,18 +12,20 @@ from pod.model_repository import service as repository
 from pod.model_repository.api import router as repository_router
 from pod.model_validator.api import router as validator_router
 from pod.modeling_workspace.api import router as workspace_router
+from pod.order_orchestrator.api import router as order_router
 
 SUB_APPS = {
     "/api/customer_portal": ("Authentication API", portal_api.router),
     "/api/modeling_workspace": ("Model Approval API", workspace_router),
     "/api/model_validator": ("Model Validation API", validator_router),
     "/api/model_repository": ("Model Repository API", repository_router),
+    "/api/order_orchestrator": ("Order API", order_router),
 }
 
 PORTAL_DIR = Path(__file__).resolve().parent.parent / "portal_mock"
 
 
-VERSIONS = {"Authentication API": "0.1.0"}
+VERSIONS = {"Authentication API": "0.1.0", "Order API": "0.1.0"}
 
 
 def build_sub_app(title: str, router) -> FastAPI:

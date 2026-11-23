@@ -263,7 +263,7 @@ def on_validation_completed(session: Session, order_id: uuid.UUID, model_id: uui
 def reevaluate_print(session: Session, order_id: uuid.UUID) -> None:
     """BR-001: do tlače iba model so súhlasom zákazníka (VAR-1 approved, VAR-2 nezmenený model – BR-008)."""
     order = orders.get_order(session, order_id)
-    if order.print_status == orders.CANNOT_BE_FULFILLED:
+    if order.print_status in (orders.CANNOT_BE_FULFILLED, orders.PRINTING):
         return
     model = repository.model_for_order(session, order_id)
     latest = repository.latest_version(session, model.model_id) if model else None

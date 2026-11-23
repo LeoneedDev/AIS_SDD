@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintOnDemand – pracovisko modelára (mockup)</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header>
+  <h1>PrintOnDemand · pracovisko modelára <span class="muted">(mockup)</span></h1>
+  <nav class="user">
+    <span class="muted">Prihlásený: <strong id="who">…</strong></span>
+    <button id="logout">Odhlásiť sa</button>
+  </nav>
+</header>
+<main>
+  <div class="stack">
+    <section>
+      <h2>Všetky objednávky</h2>
+      <ul class="orders" id="orders"></ul>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section id="detail" hidden>
+      <h2>Objednávka</h2>
+      <h3 id="d-title"></h3>
+      <p class="muted"><span id="d-path"></span> · stav tlače: <span id="d-print"></span></p>
+      <p>Schválenie zákazníkom: <span id="a-state" class="muted">model ešte nebol poslaný</span>
+         <span class="muted" id="a-rev"></span></p>
+
+      <h2 style="margin-top:20px">1 · Model</h2>
+      <input type="file" id="file">
+      <label for="note">Poznámka pre zákazníka (čo sme urobili / zmenili)</label>
+      <input type="text" id="note" placeholder="napr. Otvory zväčšené o 2 mm">
+      <div class="actions">
+        <button class="primary" id="send">Nahrať a poslať zákazníkovi na schválenie</button>
+      </div>
+      <p class="muted" id="send-hint"></p>
+
+      <h2 style="margin-top:20px">2 · Kontrola tlačiteľnosti</h2>
+      <div class="actions"><button id="check">Skontrolovať tlačiteľnosť</button></div>
+      <p class="muted" id="check-result"></p>
+
+      <h2 style="margin-top:20px">3 · Tlač</h2>
+      <div class="actions"><button class="print" id="print">🖨 Odoslať na tlač</button></div>
+      <p class="muted">Povolené až keď zákazník model schválil a model prešiel kontrolou (BR-001).
+        Ukážka – tlačiarne nie sú pripojené, zmení sa iba stav na „V tlači“.</p>
+      <div id="d-printing" class="printing-banner" hidden>🖨 Objednávka je v tlači.<small>Simulovaný stav – skutočná tlač neprebieha.</small></div>
+
+      <ol class="history" id="history"></ol>
+    </section>
+
+    <section id="log-box">
+      <h2>Odpovede API</h2>
+      <div id="log"></div>
+    </section>
+  </div>
+</main>
+<script src="common.js"></script>
+<script>
+let orders = [], approvals = {}, order = null;
+const approvalOf = (o) => approvals[o.order_id];
+
+async function loadOrders() {
+  const r = await api("GET", API.orders);
+  if (!r.ok) return;
+  orders = r.data;
+  await Promise.all(orders.map(async (o) => {
+    const a = await fetch(`${API.ws}/orders/${o.order_id}/model_approvals`).then((x) => x.json()).catch(() => []);
+    approvals[o.order_id] = Array.isArray(a) && a.length ? a[0] : null;
+  }));
+  if (order) order = orders.find((o) => o.order_id === order.order_id) || null;
+  renderOrders($("orders"), orders, order && order.order_id, select,
+    (o) => approvalOf(o) ? ` · ${STATE_LABELS[approvalOf(o).state]}` : "");
+  if (order) render();
+}
+
+function select(o) {
+  order = o;
+  renderOrders($("orders"), orders, o.order_id, select,
+    (x) => approvalOf(x) ? ` · ${STATE_LABELS[approvalOf(x).state]}` : "");
+  $("check-result").textContent = "";
+  render();
+}
+
+function render() {
+  const a = approvalOf(order);
+  $("detail").hidden = false;
+  $("d-title").textContent = order.description;
+  $("d-path").textContent = PATH_LABELS[order.path];
+  $("d-print").replaceChildren(badge(order.print_status, PRINT_LABELS[order.print_status]));
+  $("d-printing").hidden = order.print_status !== "printing";
+  if (a) {
+    $("a-state").replaceChildren(badge(a.state, STATE_LABELS[a.state]));
+    $("a-rev").textContent = ` · revízie ${a.revision_count}/2`;
+    renderHistory($("history"), a);
+  } else {
+    $("a-state").textContent = "model ešte nebol poslaný";
+    $("a-rev").textContent = "";
+    $("history").innerHTML = "";
+  }
+  const canSend = !a || a.state === "rejected" || a.state === "closed_new_development";
+  $("send").disabled = !canSend || order.print_status === "printing";
+  $("send-hint").textContent = a && a.state === "rejected" ? "Zákazník nesúhlasí – pošli upravený model ako novú revíziu." : "";
+  $("check").disabled = !(a && a.state === "approved") || order.print_status === "printing";
+  $("print").disabled = order.print_status !== "ready_for_print";
+}
+
+$("send").onclick = async () => {
+  const f = $("file").files[0];
+  const fd = new FormData();
+  fd.append("file", f || new File([`solid model\nendsolid model\n`], "model.stl"));
+  const up = await api("POST", `${API.repo}/orders/${order.order_id}/model_versions`, fd, true);
+  if (!up.ok) return;
+  const a = approvalOf(order), note = $("note").value || null;
+  if (a && a.state === "rejected") {
+    await api("POST", `${API.ws}/orders/${order.order_id}/model_approvals/${a.model_approval_id}/revisions`, { model_version: up.data.version, note });
+  } else {
+    await api("POST", `${API.ws}/orders/${order.order_id}/model_approvals`, { model_version: up.data.version, model_origin: "new_model", note });
+  }
+  $("file").value = ""; $("note").value = "";
+  await loadOrders();
+};
+
+$("check").onclick = async () => {
+  const a = approvalOf(order);
+  const r = await api("POST", `${API.val}/model_validations`, {
+    order_id: order.order_id, model_id: a.model_id, model_version: a.model_version, print_type: "plast", path: order.path });
+  if (r.ok) $("check-result").textContent = r.data.result === "passed" ? "✔ Model je v poriadku a dá sa vytlačiť." : "✖ Model má chyby – vráti sa na prepracovanie.";
+  await loadOrders();
+};
+
+$("print").onclick = async () => {
+  await api("POST", `${API.orders}/${order.order_id}/print_jobs`);
+  await loadOrders();
+};
+
+requireSession(["modeler", "manager"]).then(async (s) => {
+  if (!s) return;
+  await loadOrders();
+  if (orders[0]) select(orders[0]);
+});
+</script>
+</body>
+</html>

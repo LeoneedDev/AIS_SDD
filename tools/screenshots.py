@@ -1,157 +1,137 @@
-"""Screenshoty portálu, prihlásenia, chatu a API docs do docs/screenshots/.
+"""Screenshoty celej ukážky do docs/screenshots/ (server musí bežať na :8000).
 
-Server musí bežať na :8000. Spustenie:
-  PYTHONPATH=src .venv/Scripts/python tools/screenshots.py
+POZOR: vymaže a znova vytvorí vývojovú databázu (iba ukážkové dáta).
+Spustenie:  PYTHONPATH=src .venv/Scripts/python tools/screenshots.py
 """
 from pathlib import Path
 
-import httpx
 from playwright.sync_api import sync_playwright
-from sqlalchemy import select
 
 from pod.core import auth
 from pod.core.db import init_db
 from pod.core.settings import Settings
 from pod.customer_portal import service as portal
-from pod.customer_portal.models import UserAccount
 from pod.dev_seed import ACCOUNTS
-from pod.order_orchestrator import service as orders
 
 BASE = "http://127.0.0.1:8000"
 OUT = Path("docs/screenshots")
-WS, VAL, REPO = "/api/modeling_workspace", "/api/model_validator", "/api/model_repository"
+STL = b"solid drziak\nfacet normal 0 0 1\nendfacet\nendsolid drziak\n"
 
 
-def prepare():
+def reset_database() -> None:
     settings = Settings()
     db = init_db(settings.database_url)
     auth.configure(settings.jwt_secret)
+    db.drop_schema()
     db.create_schema()
     with db.sessions.begin() as s:
         for account_id, login, password, role, nickname in ACCOUNTS:
-            if s.scalars(select(UserAccount).where(UserAccount.login == login)).first() is None:
-                portal.create_account(s, account_id, login, password, role, nickname)
-        var1 = str(orders.create_order(s, "customer-anna", "VAR-1", "Držiak na bicykel, 30×30 cm", True).order_id)
-        var2 = str(orders.create_order(s, "customer-boris", "VAR-2", "Vlastný model krytu").order_id)
-    return var1, var2
+            portal.create_account(s, account_id, login, password, role, nickname)
 
 
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     for old in OUT.glob("*.png"):
         old.unlink()
-    var1, var2 = prepare()
-
-    modeler = {"Authorization": "Bearer " + auth.issue_token("emp-17", "modeler", "jan.m")}
-    boris = {"Authorization": "Bearer " + auth.issue_token("customer-boris", "customer")}
-    api = httpx.Client(base_url=BASE, trust_env=False, timeout=10)
-
-    api.post(f"{REPO}/orders/{var1}/model_versions", headers=modeler,
-             files={"file": ("drziak_v1.stl", b"solid drziak\nendsolid drziak\n")})
-    approval_id = api.post(f"{WS}/orders/{var1}/model_approvals", headers=modeler,
-                           json={"model_version": 1, "model_origin": "new_model",
-                                 "note": "Prvá verzia držiaka podľa vášho popisu"}).json()["model_approval_id"]
-    model = api.post(f"{REPO}/orders/{var2}/model_versions", headers=boris,
-                     files={"file": ("kryt.stl", b"STUB:ERROR kryt")}).json()
-    api.post(f"{VAL}/model_validations", headers=modeler,
-             json={"order_id": var2, "model_id": model["model_id"], "model_version": 1,
-                   "print_type": "plast", "path": "VAR-2"})
+    reset_database()
 
     with sync_playwright() as p:
         browser = p.chromium.launch()
-        page = browser.new_page(viewport={"width": 1280, "height": 900})
+        anna = browser.new_context(viewport={"width": 1280, "height": 860}).new_page()
+        jan = browser.new_context(viewport={"width": 1280, "height": 860}).new_page()
 
-        def shot(name: str, target=None) -> None:
-            target = target or page
-            target.wait_for_timeout(300)
-            target.screenshot(path=str(OUT / name), full_page=True)
+        def shot(page, name: str) -> None:
+            page.wait_for_timeout(400)
+            page.evaluate("document.getElementById('log-box') && (document.getElementById('log-box').hidden = true)")
+            page.screenshot(path=str(OUT / name), full_page=True)
             print("✓", name)
 
-        def log_in(target, login: str, password: str) -> None:
-            target.goto(f"{BASE}/portal/login.html")
-            target.fill("#login", login)
-            target.fill("#password", password)
-            target.click("#submit")
-            target.wait_for_url("**/portal/index.html")
-            target.wait_for_timeout(400)
+        def log_in(page, login: str, password: str, landing: str) -> None:
+            page.goto(f"{BASE}/portal/login.html")
+            page.fill("#login", login)
+            page.fill("#password", password)
+            page.click("#submit")
+            page.wait_for_url(f"**/portal/{landing}")
+            page.wait_for_timeout(600)
 
-        def load_order(target, order_id: str) -> None:
-            target.fill("#order", order_id)
-            target.click("#load")
-            target.wait_for_timeout(500)
+        def reload(page) -> None:
+            page.reload()
+            page.wait_for_timeout(900)
 
-        page.goto(f"{BASE}/portal/login.html")
-        shot("01_login.png")
+        # 1. prihlásenie
+        anna.goto(f"{BASE}/portal/login.html")
+        shot(anna, "01_login.png")
+        anna.fill("#login", "anna")
+        anna.fill("#password", "zle-heslo")
+        anna.click("#submit")
+        anna.wait_for_selector("#error:not([hidden])")
+        shot(anna, "02_login_nespravne_heslo.png")
 
-        page.fill("#login", "anna")
-        page.fill("#password", "zle-heslo")
-        page.click("#submit")
-        page.wait_for_selector("#error:not([hidden])")
-        shot("02_login_nespravne_heslo.png")
+        # 2. Anna vytvorí objednávku
+        log_in(anna, "anna", "Anna-heslo-1", "index.html")
+        anna.fill("#new-desc", "Držiak na bicykel na riadidlá, priemer 30 mm")
+        shot(anna, "03_zakaznik_nova_objednavka.png")
+        anna.click("#create")
+        anna.wait_for_timeout(800)
+        shot(anna, "04_zakaznik_objednavka_odoslana.png")
 
-        log_in(page, "anna", "Anna-heslo-1")
-        page.evaluate("localStorage.clear()")
-        load_order(page, var1)
-        page.evaluate("document.getElementById('log').textContent = ''")
-        load_order(page, var1)
-        shot("03_portal_model_caka_na_schvalenie.png")
+        # 3. modelár pošle model na schválenie
+        log_in(jan, "jan.m", "Jan-heslo-1", "modeler.html")
+        shot(jan, "05_modelar_zoznam_objednavok.png")
+        jan.set_input_files("#file", files=[{"name": "drziak_v1.stl", "mimeType": "model/stl", "buffer": STL}])
+        jan.fill("#note", "Prvá verzia držiaka podľa vášho popisu")
+        jan.click("#send")
+        jan.wait_for_timeout(900)
+        shot(jan, "06_modelar_model_poslany_zakaznikovi.png")
 
-        page.click("#open")
-        page.wait_for_timeout(500)
-        shot("04_portal_model_otvoreny.png")
+        # 4. Anna model otvorí a schváli
+        reload(anna)
+        shot(anna, "07_zakaznik_model_caka_na_schvalenie.png")
+        anna.click("#open")
+        anna.wait_for_timeout(600)
+        shot(anna, "08_zakaznik_model_otvoreny.png")
+        anna.click("#approve")
+        anna.wait_for_timeout(800)
+        shot(anna, "09_zakaznik_model_schvaleny.png")
 
-        page.fill("#comment", "Otvory na skrutky majú byť o 2 mm väčšie.")
-        page.click("#reject")
-        page.wait_for_timeout(500)
-        shot("05_portal_nesuhlas_s_komentarom.png")
+        # 5. modelár skontroluje a odošle na tlač
+        reload(jan)
+        jan.click("#check")
+        jan.wait_for_timeout(900)
+        shot(jan, "10_modelar_kontrola_tlacitelnosti.png")
+        jan.click("#print")
+        jan.wait_for_timeout(900)
+        shot(jan, "11_modelar_odoslane_na_tlac.png")
 
-        api.post(f"{REPO}/orders/{var1}/model_versions", headers=modeler,
-                 files={"file": ("drziak_v2.stl", b"solid drziak v2\nendsolid drziak\n")})
-        api.post(f"{WS}/orders/{var1}/model_approvals/{approval_id}/revisions", headers=modeler,
-                 json={"model_version": 2, "note": "Otvory zväčšené o 2 mm"})
-        page.click("#load")
-        page.wait_for_timeout(500)
-        shot("06_portal_nova_revizia.png")
+        # 6. Anna vidí stav V tlači
+        reload(anna)
+        shot(anna, "12_zakaznik_objednavka_v_tlaci.png")
 
-        page.click("#open")
-        page.wait_for_timeout(400)
-        page.click("#approve")
-        page.wait_for_timeout(500)
-        shot("07_portal_model_schvaleny.png")
+        # 7. chat a API
+        anna.goto(f"{BASE}/portal/chat.html")
+        anna.fill("#text", "Dobrý deň, kedy si môžem diel vyzdvihnúť?")
+        anna.click("button[type=submit]")
+        anna.wait_for_timeout(1200)
+        shot(anna, "13_chat_mockup.png")
 
-        page.click("#logout")
-        page.wait_for_url("**/portal/login.html")
-        log_in(page, "boris", "Boris-heslo-1")
-        load_order(page, var2)
-        page.evaluate("document.getElementById('log').textContent = ''")
-        page.click("[data-consent=model_fix][data-decision=granted]")
-        page.wait_for_timeout(500)
-        shot("08_portal_suhlas_s_opravou.png")
+        docs = [("customer_portal", "prihlasenie"), ("order_orchestrator", "objednavky"),
+                ("modeling_workspace", "schvalenie_modelu"), ("model_repository", "modely"),
+                ("model_validator", "kontrola_modelu")]
+        for i, (prefix, name) in enumerate(docs, start=14):
+            jan.goto(f"{BASE}/api/{prefix}/docs")
+            jan.wait_for_selector(".opblock", timeout=15000)
+            shot(jan, f"{i}_api_{name}.png")
 
-        page.goto(f"{BASE}/portal/chat.html")
-        page.fill("#order", var2)
-        page.fill("#text", "Dobrý deň, čo presne opravíte na mojom modeli?")
-        page.click("button[type=submit]")
-        page.wait_for_timeout(1200)
-        shot("09_chat_mockup.png")
-
-        for i, (prefix, name) in enumerate([("customer_portal", "authentication"),
-                                            ("modeling_workspace", "model_approval"),
-                                            ("model_repository", "model_repository"),
-                                            ("model_validator", "model_validation")], start=10):
-            page.goto(f"{BASE}/api/{prefix}/docs")
-            page.wait_for_selector(".opblock", timeout=15000)
-            shot(f"{i}_api_{name}.png")
-
-        mobile = browser.new_page(viewport={"width": 390, "height": 844}, device_scale_factor=2)
+        # 8. mobil
+        mobile = browser.new_context(viewport={"width": 390, "height": 844}, device_scale_factor=2).new_page()
         mobile.goto(f"{BASE}/portal/login.html")
         mobile.wait_for_timeout(300)
-        mobile.screenshot(path=str(OUT / "14_mobil_login.png"))
-        print("✓ 14_mobil_login.png")
-        log_in(mobile, "anna", "Anna-heslo-1")
-        load_order(mobile, var1)
-        mobile.screenshot(path=str(OUT / "15_mobil_portal.png"))
-        print("✓ 15_mobil_portal.png")
+        mobile.screenshot(path=str(OUT / "19_mobil_login.png"))
+        print("✓ 19_mobil_login.png")
+        log_in(mobile, "anna", "Anna-heslo-1", "index.html")
+        mobile.wait_for_timeout(600)
+        mobile.screenshot(path=str(OUT / "20_mobil_moje_objednavky.png"))
+        print("✓ 20_mobil_moje_objednavky.png")
         browser.close()
 
 

@@ -10,6 +10,7 @@ from pod.order_orchestrator.models import ModelingTask, Order
 NOT_READY = "not_ready"
 READY_FOR_PRINT = "ready_for_print"
 CANNOT_BE_FULFILLED = "cannot_be_fulfilled"
+PRINTING = "printing"
 
 
 def create_order(session: Session, customer_id: str, path: str, description: str = "",
@@ -55,6 +56,8 @@ def open_tasks(session: Session, order_id: uuid.UUID) -> list[ModelingTask]:
 
 def set_print_status(session: Session, order_id: uuid.UUID, status: str, *, split: bool | None = None) -> None:
     order = get_order(session, order_id)
+    if order.print_status == PRINTING:
+        return
     order.print_status = status
     if split is not None:
         order.split_into_parts = split

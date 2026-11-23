@@ -16,7 +16,7 @@ requirements:
     priority: "must"
     status: "approved"
     realized_by: ["BS-3DModelingApproval", "AS-ModellingOfComponent", "AS-ApprovingModel"]
-    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04", "SC-001-05", "SC-001-06", "SC-001-07", "SC-001-08", "SC-001-09", "SC-001-10", "SC-001-11"]
+    acceptance_scenarios: ["SC-001-01", "SC-001-02", "SC-001-03", "SC-001-04", "SC-001-05", "SC-001-06", "SC-001-07", "SC-001-08", "SC-001-09", "SC-001-10", "SC-001-11", "SC-001-12", "SC-001-13", "SC-001-14", "SC-001-15"]
 
 constraints:
   - id: "C-001"

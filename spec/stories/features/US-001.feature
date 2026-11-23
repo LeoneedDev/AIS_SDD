@@ -88,3 +88,29 @@ Feature: Schválenie 3D modelu pre zákazku
     When zákazník nahrá ďalší model
     Then model sa neoverí
     And zákazník dostane informáciu, že ďalšie overenie je za doplatok
+
+  @SC-001-12 @R-001 @QR-001
+  Scenario: Zákazník vidí zoznam svojich objednávok
+    Given zákazník má dve objednávky a iný zákazník má jednu objednávku
+    When zákazník otvorí portál
+    Then vidí práve svoje dve objednávky, najnovšiu prvú
+    And objednávku iného zákazníka nevidí
+
+  @SC-001-13 @R-001 @BR-006
+  Scenario: Zákazník vytvorí objednávku s popisom dielu
+    Given zákazník je prihlásený v portáli
+    When zákazník vytvorí objednávku s popisom dielu
+    Then objednávka sa objaví v jeho zozname ako zaplatená a ešte nepripravená na tlač
+
+  @SC-001-14 @R-001 @BR-001
+  Scenario: Schválený a overený model sa odošle do tlače
+    Given zákazník schválil model a model prešiel kontrolou tlačiteľnosti
+    When 3D modelár odošle objednávku do tlače
+    Then stav objednávky je "printing"
+
+  @SC-001-15 @R-001 @BR-001
+  Scenario: Model bez súhlasu zákazníka nemožno odoslať do tlače
+    Given zákazníkovi bol poslaný model na schválenie
+    When 3D modelár sa pokúsi odoslať objednávku do tlače
+    Then odoslanie do tlače je odmietnuté
+    And model sa netlačí

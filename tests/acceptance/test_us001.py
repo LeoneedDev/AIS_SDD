@@ -325,3 +325,77 @@ def not_validated(world):
 def informed_about_fee(world):
     assert world.last["type"] == "urn:problem:upload_limit_reached"
     assert "doplatok" in world.last["detail"]
+
+
+# --- zoznam objednávok, nová objednávka, tlač (Order API) ---------------------------
+
+ORDERS = "/api/order_orchestrator/orders"
+
+
+@given("zákazník má dve objednávky a iný zákazník má jednu objednávku")
+def two_orders_and_foreign(world):
+    world.data.foreign = world.new_order("VAR-1", "customer-zoe", "Cudzí diel")
+    world.data.first = world.new_order("VAR-1", "customer-anna", "Prvý diel")
+    world.data.second = world.new_order("VAR-2", "customer-anna", "Druhý diel")
+
+
+@when("zákazník otvorí portál")
+def customer_opens_portal(world):
+    r = world.api.get(ORDERS, world.customer)
+    assert r.status_code == 200
+    world.data.listed = [o["order_id"] for o in r.json()]
+
+
+@then("vidí práve svoje dve objednávky, najnovšiu prvú")
+def sees_two_own(world):
+    assert world.data.listed == [str(world.data.second), str(world.data.first)]
+
+
+@then("objednávku iného zákazníka nevidí")
+def foreign_not_visible(world):
+    assert str(world.data.foreign) not in world.data.listed
+
+
+@given("zákazník je prihlásený v portáli")
+def customer_in_portal(world):
+    world.customer = world.customer_token("customer-anna")
+
+
+@when("zákazník vytvorí objednávku s popisom dielu")
+def customer_creates_order(world):
+    r = world.api.post(ORDERS, world.customer, json={"path": "VAR-1", "description": "Držiak na bicykel"})
+    assert r.status_code == 201
+    world.last = r.json()
+
+
+@then("objednávka sa objaví v jeho zozname ako zaplatená a ešte nepripravená na tlač")
+def order_in_list(world):
+    listed = world.api.get(ORDERS, world.customer).json()
+    assert listed[0]["order_id"] == world.last["order_id"]
+    assert listed[0]["print_status"] == "not_ready"
+
+
+@given("zákazník schválil model a model prešiel kontrolou tlačiteľnosti")
+def approved_and_checked(world):
+    _approved_var1(world, CLEAN)
+    assert world.validate(1, "VAR-1")["result"] == "passed"
+    assert world.order().print_status == "ready_for_print"
+
+
+@when("3D modelár odošle objednávku do tlače")
+@when("3D modelár sa pokúsi odoslať objednávku do tlače")
+def modeler_starts_print(world):
+    world.last = world.api.post(f"{ORDERS}/{world.order_id}/print_jobs", world.modeler)
+
+
+@then(parsers.parse('stav objednávky je "{status}"'))
+def order_status(world, status):
+    assert world.last.status_code == 200
+    assert world.last.json()["print_status"] == status
+    assert world.order().print_status == status
+
+
+@then("odoslanie do tlače je odmietnuté")
+def print_refused(world):
+    assert world.last.status_code == 409
+    assert world.last.json()["type"] == "urn:problem:not_ready_for_print"

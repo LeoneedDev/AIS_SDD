@@ -3,35 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PrintOnDemand – zákaznícky portál (mockup)</title>
-<style>
-  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb; --accent:#2f6fde; --ok:#1f8a4c; --bad:#c2410c; }
-  * { box-sizing: border-box; }
-  body { margin:0; font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
-  header { padding:16px 24px; background:var(--card); border-bottom:1px solid var(--line); display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
-  header h1 { font-size:18px; margin:0; }
-  header a { color:var(--accent); }
-  main { max-width:880px; margin:24px auto; padding:0 16px; display:grid; gap:16px; }
-  section { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 20px; }
-  h2 { font-size:15px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.04em; color:var(--muted); }
-  label { display:block; font-size:13px; color:var(--muted); margin-bottom:4px; }
-  input[type=text], textarea { width:100%; padding:8px 10px; border:1px solid var(--line); border-radius:6px; font:inherit; }
-  textarea { min-height:70px; }
-  .row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-  @media (max-width:600px) { .row { grid-template-columns:1fr; } }
-  button { font:inherit; padding:8px 14px; border-radius:6px; border:1px solid var(--line); background:#fff; cursor:pointer; }
-  button.primary { background:var(--accent); color:#fff; border-color:var(--accent); }
-  button.ok { background:var(--ok); color:#fff; border-color:var(--ok); }
-  button.bad { background:#fff; color:var(--bad); border-color:var(--bad); }
-  .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-  .state { display:inline-block; padding:2px 10px; border-radius:999px; background:#eef2ff; color:var(--accent); font-weight:600; font-size:13px; }
-  .muted { color:var(--muted); font-size:13px; }
-  ol.history { padding-left:20px; margin:8px 0 0; }
-  ol.history li { margin:4px 0; }
-  nav.user { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
-  nav.user button { padding:6px 12px; }
-  #log { font:12px/1.4 ui-monospace, monospace; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; max-height:220px; overflow:auto; }
-</style>
+<title>PrintOnDemand – môj účet (mockup)</title>
+<link rel="stylesheet" href="app.css">
 </head>
 <body>
 <header>
@@ -43,131 +16,151 @@
   </nav>
 </header>
 <main>
-  <section>
-    <h2>Objednávka</h2>
-    <div>
-      <label for="order">ID objednávky</label><input id="order" type="text">
-    </div>
-    <div class="actions"><button class="primary" id="load">Načítať stav</button></div>
-  </section>
+  <div class="stack">
+    <section>
+      <h2>Moje objednávky</h2>
+      <ul class="orders" id="orders"></ul>
+    </section>
+    <section>
+      <h2>Nová objednávka</h2>
+      <label for="new-path">Čo potrebujete?</label>
+      <select id="new-path">
+        <option value="VAR-1">Vytvorte mi model podľa popisu</option>
+        <option value="VAR-2">Mám vlastný 3D model</option>
+      </select>
+      <label for="new-desc">Popis dielu</label>
+      <textarea id="new-desc" placeholder="napr. Držiak na bicykel, 30 × 30 cm"></textarea>
+      <label><input type="checkbox" id="new-share"> Povoľujem zdieľať môj model s inými zákazníkmi</label>
+      <div class="actions"><button class="primary" id="create">Odoslať objednávku</button></div>
+      <p class="muted">Ukážka: platba sa nesimuluje, objednávka sa považuje za zaplatenú.</p>
+    </section>
+  </div>
 
-  <section id="approval-card" hidden>
-    <h2>Schválenie modelu</h2>
-    <p>Stav: <span class="state" id="state"></span>
-       <span class="muted" id="revisions"></span></p>
-    <p id="model-link" class="muted"></p>
-    <div class="actions">
-      <button id="open">Otvoriť model</button>
-      <button class="ok" id="approve">Súhlasím s modelom</button>
-    </div>
-    <label for="comment" style="margin-top:12px">S čím nesúhlasíte?</label>
-    <textarea id="comment"></textarea>
-    <div class="actions"><button class="bad" id="reject">Nesúhlasím</button></div>
-    <ol class="history" id="history"></ol>
-  </section>
+  <div class="stack">
+    <section id="detail" hidden>
+      <h2>Objednávka</h2>
+      <h3 id="d-title"></h3>
+      <p class="muted"><span id="d-path"></span> · stav tlače: <span id="d-print"></span></p>
+      <div id="d-printing" class="printing-banner" hidden>
+        🖨 Váš diel sa tlačí.
+        <small>Ukážka – tlačiarne nie sú pripojené, stav „V tlači“ je simulovaný.</small>
+      </div>
 
-  <section>
-    <h2>Otázky od nás</h2>
-    <p class="muted">Opravu ani rozdelenie modelu nerobíme bez vášho súhlasu.</p>
-    <div class="actions">
-      <button data-consent="model_fix" data-decision="granted">Súhlasím s opravou</button>
-      <button data-consent="model_fix" data-decision="refused">Nesúhlasím s opravou</button>
-      <button data-consent="model_split" data-decision="granted">Súhlasím s rozdelením</button>
-      <button data-consent="model_split" data-decision="refused">Nesúhlasím s rozdelením</button>
-    </div>
-  </section>
+      <div id="approval" hidden>
+        <p>Schválenie modelu: <span id="a-state"></span> <span class="muted" id="a-rev"></span></p>
+        <p id="model-link" class="muted"></p>
+        <div class="actions" id="a-actions">
+          <button id="open">Otvoriť model</button>
+          <button class="ok" id="approve">Súhlasím s modelom</button>
+        </div>
+        <div id="reject-box">
+          <label for="comment">S čím nesúhlasíte?</label>
+          <textarea id="comment"></textarea>
+          <div class="actions"><button class="bad" id="reject">Nesúhlasím</button></div>
+        </div>
+        <ol class="history" id="history"></ol>
+      </div>
+      <p class="empty" id="no-approval" hidden>Na modeli sa pracuje – keď bude hotový, pošleme vám ho na schválenie.</p>
 
-  <section>
-    <h2>Nahrať vlastný model</h2>
-    <p class="muted">Bezplatne do limitu 10 nahraní; potom je opätovné overenie za doplatok.</p>
-    <input type="file" id="file">
-    <div class="actions"><button id="upload">Nahrať</button></div>
-  </section>
+      <div id="upload-box" hidden>
+        <label for="file">Nahrať vlastný model (bezplatne do 10 nahraní)</label>
+        <input type="file" id="file">
+        <div class="actions"><button id="upload">Nahrať</button></div>
+      </div>
+    </section>
 
-  <section>
-    <h2>Odpovede API</h2>
-    <div id="log"></div>
-  </section>
+    <section id="questions" hidden>
+      <h2>Otázky od nás</h2>
+      <p class="muted">Opravu ani rozdelenie modelu nerobíme bez vášho súhlasu.</p>
+      <div class="actions">
+        <button data-consent="model_fix" data-decision="granted">Súhlasím s opravou</button>
+        <button data-consent="model_fix" data-decision="refused">Nesúhlasím s opravou</button>
+        <button data-consent="model_split" data-decision="granted">Súhlasím s rozdelením</button>
+        <button data-consent="model_split" data-decision="refused">Nesúhlasím s rozdelením</button>
+      </div>
+    </section>
+
+    <section id="log-box">
+      <h2>Odpovede API</h2>
+      <div id="log"></div>
+    </section>
+  </div>
 </main>
+<script src="common.js"></script>
 <script>
-const $ = (id) => document.getElementById(id);
-const WS = "/api/modeling_workspace", REPO = "/api/model_repository";
-let current = null;
+let orders = [], order = null, approval = null;
 
-const AUTH = "/api/customer_portal";
-try { $("order").value = localStorage.getItem("pod.order") || ""; } catch (e) {}
-
-fetch(`${AUTH}/sessions/current`).then(async (r) => {
-  if (!r.ok) { location.replace("login.html"); return; }
-  const s = await r.json();
-  $("who").textContent = s.nickname ? `${s.nickname} (${s.role})` : `${s.account_id} (${s.role})`;
-});
-$("logout").onclick = async () => {
-  await fetch(`${AUTH}/sessions/current`, { method: "DELETE" });
-  location.replace("login.html");
-};
-
-function log(label, status, body) {
-  $("log").textContent = `${label} → ${status}\n${JSON.stringify(body, null, 2)}\n\n` + $("log").textContent;
+async function loadOrders() {
+  const r = await api("GET", API.orders);
+  if (!r.ok) return;
+  orders = r.data;
+  if (order) order = orders.find((o) => o.order_id === order.order_id) || null;
+  renderOrders($("orders"), orders, order && order.order_id, select);
 }
 
-async function api(method, url, body, isForm) {
-  const headers = { "X-Correlation-ID": crypto.randomUUID() };
-  if (body && !isForm) headers["Content-Type"] = "application/json";
-  const res = await fetch(url, { method, headers, body: isForm ? body : body ? JSON.stringify(body) : undefined });
-  if (res.status === 401) { location.replace("login.html"); return { ok: false, status: 401, data: {} }; }
-  const data = await res.json().catch(() => ({}));
-  log(`${method} ${url}`, res.status, data);
-  return { ok: res.ok, status: res.status, data };
+async function select(o) {
+  order = o;
+  try { localStorage.setItem("pod.order", o.order_id); } catch (e) {}
+  renderOrders($("orders"), orders, o.order_id, select);
+  $("detail").hidden = false;
+  $("d-title").textContent = o.description;
+  $("d-path").textContent = PATH_LABELS[o.path];
+  $("d-print").replaceChildren(badge(o.print_status, PRINT_LABELS[o.print_status]));
+  $("d-printing").hidden = o.print_status !== "printing";
+  $("upload-box").hidden = o.path !== "VAR-2" || o.print_status === "printing";
+  $("questions").hidden = o.print_status === "printing";
+  $("model-link").textContent = "";
+  const r = await api("GET", `${API.ws}/orders/${o.order_id}/model_approvals`);
+  approval = r.ok && r.data.length ? r.data[0] : null;
+  renderApproval();
 }
 
-const order = () => $("order").value.trim();
-
-async function load() {
-  try { localStorage.setItem("pod.order", order()); } catch (e) {}
-  const r = await api("GET", `${WS}/orders/${order()}/model_approvals`);
-  if (!r.ok || !r.data.length) { $("approval-card").hidden = true; return; }
-  render(r.data[0]);
-}
-
-function render(a) {
-  current = a;
-  $("approval-card").hidden = false;
-  $("state").textContent = a.state;
-  $("revisions").textContent = ` · revízie: ${a.revision_count}/2, bezplatné ostávajú: ${a.free_revisions_remaining}`;
-  $("history").innerHTML = "";
-  for (const h of a.history) {
-    const li = document.createElement("li");
-    const who = h.employee ? `${h.employee.nickname} (ID ${h.employee.employee_id})` : h.actor_role;
-    li.textContent = `${new Date(h.occurred_at).toLocaleString()} – ${h.event} – ${who}${h.comment ? ": " + h.comment : ""}`;
-    $("history").appendChild(li);
-  }
+function renderApproval() {
+  $("approval").hidden = !approval;
+  $("no-approval").hidden = !!approval || order.path === "VAR-2";
+  if (!approval) return;
+  $("a-state").replaceChildren(badge(approval.state, STATE_LABELS[approval.state]));
+  $("a-rev").textContent = ` · revízie ${approval.revision_count}/2, bezplatné ostávajú ${approval.free_revisions_remaining}`;
+  const open = ["waiting_for_review", "in_review"].includes(approval.state);
+  $("a-actions").hidden = !open;
+  $("reject-box").hidden = approval.state !== "in_review";
+  $("approve").disabled = approval.state !== "in_review";
+  renderHistory($("history"), approval);
 }
 
 async function transition(suffix, body) {
-  if (!current) return;
-  const r = await api("POST", `${WS}/orders/${order()}/model_approvals/${current.model_approval_id}/${suffix}`, body);
-  if (r.ok) render(r.data);
+  const r = await api("POST", `${API.ws}/orders/${order.order_id}/model_approvals/${approval.model_approval_id}/${suffix}`, body);
+  if (r.ok) { approval = r.data; renderApproval(); }
 }
 
-$("load").onclick = load;
 $("open").onclick = async () => {
-  if (!current) return;
-  const m = await api("GET", `${REPO}/models/${current.model_id}`);
-  if (m.ok) $("model-link").innerHTML = `Súbor: <a href="${m.data.file_url}" target="_blank">${m.data.file_url}</a>`;
-  if (current.state === "waiting_for_review") await transition("review_starts");
+  const m = await api("GET", `${API.repo}/models/${approval.model_id}`);
+  if (m.ok) $("model-link").innerHTML = `Súbor modelu: <a href="${m.data.file_url}" target="_blank">${m.data.file_url.split("/").pop()}</a>`;
+  if (approval.state === "waiting_for_review") await transition("review_starts");
 };
-$("approve").onclick = () => transition("approvals");
+$("approve").onclick = async () => { await transition("approvals"); await loadOrders(); };
 $("reject").onclick = () => transition("rejections", { comment: $("comment").value });
-document.querySelectorAll("[data-consent]").forEach((b) => b.onclick = async () => {
-  await api("POST", `${WS}/orders/${order()}/customer_consents`, { consent_type: b.dataset.consent, decision: b.dataset.decision });
-});
+document.querySelectorAll("[data-consent]").forEach((b) => b.onclick = () =>
+  api("POST", `${API.ws}/orders/${order.order_id}/customer_consents`, { consent_type: b.dataset.consent, decision: b.dataset.decision }));
 $("upload").onclick = async () => {
   const f = $("file").files[0];
   if (!f) return;
   const fd = new FormData(); fd.append("file", f);
-  await api("POST", `${REPO}/orders/${order()}/model_versions`, fd, true);
+  await api("POST", `${API.repo}/orders/${order.order_id}/model_versions`, fd, true);
 };
+$("create").onclick = async () => {
+  const r = await api("POST", API.orders, { path: $("new-path").value, description: $("new-desc").value.trim(), sharing_allowed: $("new-share").checked });
+  if (r.ok) { $("new-desc").value = ""; await loadOrders(); select(orders.find((o) => o.order_id === r.data.order_id)); }
+};
+
+requireSession(["customer"]).then(async (s) => {
+  if (!s) return;
+  await loadOrders();
+  let saved = null;
+  try { saved = localStorage.getItem("pod.order"); } catch (e) {}
+  const pick = orders.find((o) => o.order_id === saved) || orders[0];
+  if (pick) select(pick);
+});
 </script>
 </body>
 </html>

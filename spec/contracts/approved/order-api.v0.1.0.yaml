@@ -1,0 +1,198 @@
+openapi: "3.1.0"
+info:
+  title: "Order API"
+  version: "0.1.0"
+  description: >
+    Objednávky pre portál (R-001, US-001): zoznam objednávok prihláseného
+    používateľa, vytvorenie objednávky zákazníkom a odoslanie do tlače.
+    Poskytuje AC-OrderOrchestrator (owner DO-Order).
+  x-sdd:
+    status: "approved"
+    approved_by: "Leonid"
+    mode: "DESIGN_CONTRACT"
+    requirement: "R-001"
+    specification_baseline: "0.1.0"
+    provider_component: "AC-OrderOrchestrator"
+    application_service: "AS-RequestProcessing"
+    policy: "spec/policies/contract-design-profile.yaml"
+    mockup: >
+      Platba sa nesimuluje – nová objednávka sa považuje za zaplatenú (predplatba).
+      Tlačiarne nie sú pripojené – start_print iba zmení stav na printing.
+
+servers:
+  - url: "/api/order_orchestrator"
+
+security:
+  - bearer_auth: []
+  - cookie_auth: []
+
+paths:
+  /orders:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+    get:
+      operationId: "list_orders"
+      summary: "Moje objednávky (najnovšia prvá)"
+      description: >
+        Zákazník dostane iba svoje objednávky. 3D modelár a manažér dostanú
+        všetky objednávky (pracujú na nich podľa ACT-3DModeler a ACT-Manager).
+        Odpoveď neobsahuje osobné ani platobné údaje (QR-001).
+      x-sdd:
+        allowed_roles: ["customer_own_order", "modeler", "manager"]
+        roles_source: "US-001 (zákazník vidí svoje objednávky), ACT-3DModeler, ACT-Manager"
+        rules: ["QR-001"]
+        data_objects: ["DO-Order"]
+        scenarios: ["SC-001-12"]
+      parameters:
+        - name: "limit"
+          in: "query"
+          required: false
+          schema: { type: "integer", minimum: 1, maximum: 100, default: 50 }
+      responses:
+        "200":
+          description: "Zoznam objednávok."
+          content:
+            application/json:
+              schema:
+                type: "array"
+                items: { $ref: "#/components/schemas/order_summary" }
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+    post:
+      operationId: "create_order"
+      summary: "Zákazník vytvorí objednávku"
+      description: >
+        VAR-1: zákazník pošle popis dielu a model vytvoríme my. VAR-2: zákazník
+        potom nahrá vlastný model (upload_model_version). Zdieľanie modelu je
+        predvolene vypnuté; zákazník ho môže povoliť (BR-006).
+      x-sdd:
+        allowed_roles: ["customer"]
+        roles_source: "ACT-Clients (posiela požiadavku alebo model)"
+        rules: ["BR-006", "QR-001"]
+        data_objects: ["DO-Order", "DO-PromptOrder", "DO-ModelOrder"]
+        scenarios: ["SC-001-13"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/order_create" }
+      responses:
+        "201":
+          description: "Objednávka vytvorená (považuje sa za zaplatenú)."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/order_summary" }
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+
+  /orders/{order_id}/print_jobs:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+      - name: "order_id"
+        in: "path"
+        required: true
+        schema: { type: "string", format: "uuid" }
+    post:
+      operationId: "start_print"
+      summary: "Odoslať model do tlače (mockup)"
+      description: >
+        Povolené iba pri print_status = ready_for_print, teda model má súhlas
+        zákazníka a prešiel kontrolou tlačiteľnosti (BR-001). Stav sa zmení na
+        printing; potom už model nemožno meniť (BR-004). Skutočná tlač neprebehne.
+      x-sdd:
+        allowed_roles: ["modeler", "manager"]
+        roles_source: "ACT-3DModeler (odovzdáva model do tlače), ACT-Manager (môže poslať do tlače)"
+        rules: ["BR-001", "BR-004"]
+        data_objects: ["DO-Order"]
+        scenarios: ["SC-001-14", "SC-001-15"]
+      responses:
+        "200":
+          description: "Objednávka je v tlači."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/order_summary" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "404": { $ref: "#/components/responses/not_found" }
+        "409":
+          description: >
+            Model ešte nemá súhlas zákazníka alebo neprešiel kontrolou
+            (problem type urn:problem:not_ready_for_print).
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/problem" }
+
+components:
+  securitySchemes:
+    bearer_auth:
+      type: "http"
+      scheme: "bearer"
+    cookie_auth:
+      type: "apiKey"
+      in: "cookie"
+      name: "pod_session"
+
+  parameters:
+    correlation_id:
+      name: "X-Correlation-ID"
+      in: "header"
+      required: false
+      schema: { type: "string" }
+
+  responses:
+    bad_request:
+      description: "Neplatný vstup."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    unauthorized:
+      description: "Nie je platná relácia ani token."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    forbidden:
+      description: "Rola nemá oprávnenie."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    not_found:
+      description: "Objednávka neexistuje."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+
+  schemas:
+    problem:
+      type: "object"
+      description: "RFC 9457 problem details."
+      properties:
+        type: { type: "string", format: "uri-reference" }
+        title: { type: "string" }
+        status: { type: "integer" }
+        detail: { type: "string" }
+        instance: { type: "string" }
+      required: ["type", "title", "status"]
+
+    order_summary:
+      type: "object"
+      properties:
+        order_id: { type: "string", format: "uuid" }
+        path:
+          type: "string"
+          enum: ["VAR-1", "VAR-2"]
+          description: "VAR-1 model vytvoríme my, VAR-2 model dodal zákazník."
+        description: { type: "string" }
+        print_status:
+          type: "string"
+          enum: ["not_ready", "ready_for_print", "printing", "cannot_be_fulfilled"]
+        created_at: { type: "string", format: "date-time" }
+      required: ["order_id", "path", "description", "print_status", "created_at"]
+
+    order_create:
+      type: "object"
+      properties:
+        path: { type: "string", enum: ["VAR-1", "VAR-2"] }
+        description: { type: "string", minLength: 1, maxLength: 4000 }
+        sharing_allowed: { type: "boolean", default: false }
+      required: ["path", "description"]

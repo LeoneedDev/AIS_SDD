@@ -35,7 +35,8 @@
 </form>
 <script>
 const form = document.getElementById("form"), error = document.getElementById("error"), submit = document.getElementById("submit");
-fetch("/api/customer_portal/sessions/current").then((r) => { if (r.ok) location.replace("index.html"); });
+const home = (role) => role === "customer" ? "index.html" : "modeler.html";
+fetch("/api/customer_portal/sessions/current").then(async (r) => { if (r.ok) location.replace(home((await r.json()).role)); });
 form.onsubmit = async (e) => {
   e.preventDefault();
   error.hidden = true;
@@ -46,8 +47,8 @@ form.onsubmit = async (e) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ login: form.login.value.trim(), password: form.password.value }),
     });
-    if (res.ok) { location.replace("index.html"); return; }
     const p = await res.json().catch(() => ({}));
+    if (res.ok) { location.replace(home(p.role)); return; }
     error.textContent = p.detail || "Prihlásenie sa nepodarilo.";
     error.hidden = false;
   } finally {
