@@ -28,20 +28,25 @@
   .muted { color:var(--muted); font-size:13px; }
   ol.history { padding-left:20px; margin:8px 0 0; }
   ol.history li { margin:4px 0; }
+  nav.user { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  nav.user button { padding:6px 12px; }
   #log { font:12px/1.4 ui-monospace, monospace; white-space:pre-wrap; background:#0f172a; color:#e2e8f0; border-radius:8px; padding:12px; max-height:220px; overflow:auto; }
 </style>
 </head>
 <body>
 <header>
   <h1>PrintOnDemand · môj účet <span class="muted">(mockup portálu)</span></h1>
-  <a href="chat.html">Chat k objednávke →</a>
+  <nav class="user">
+    <a href="chat.html">Chat k objednávke</a>
+    <span class="muted">Prihlásený: <strong id="who">…</strong></span>
+    <button id="logout">Odhlásiť sa</button>
+  </nav>
 </header>
 <main>
   <section>
-    <h2>Prihlásenie a objednávka</h2>
-    <div class="row">
-      <div><label for="token">Bearer token (z <code>python -m pod.dev_seed</code>)</label><input id="token" type="text"></div>
-      <div><label for="order">ID objednávky</label><input id="order" type="text"></div>
+    <h2>Objednávka</h2>
+    <div>
+      <label for="order">ID objednávky</label><input id="order" type="text">
     </div>
     <div class="actions"><button class="primary" id="load">Načítať stav</button></div>
   </section>
@@ -89,16 +94,28 @@ const $ = (id) => document.getElementById(id);
 const WS = "/api/modeling_workspace", REPO = "/api/model_repository";
 let current = null;
 
-try { $("token").value = localStorage.getItem("pod.token") || ""; $("order").value = localStorage.getItem("pod.order") || ""; } catch (e) {}
+const AUTH = "/api/customer_portal";
+try { $("order").value = localStorage.getItem("pod.order") || ""; } catch (e) {}
+
+fetch(`${AUTH}/sessions/current`).then(async (r) => {
+  if (!r.ok) { location.replace("login.html"); return; }
+  const s = await r.json();
+  $("who").textContent = s.nickname ? `${s.nickname} (${s.role})` : `${s.account_id} (${s.role})`;
+});
+$("logout").onclick = async () => {
+  await fetch(`${AUTH}/sessions/current`, { method: "DELETE" });
+  location.replace("login.html");
+};
 
 function log(label, status, body) {
   $("log").textContent = `${label} → ${status}\n${JSON.stringify(body, null, 2)}\n\n` + $("log").textContent;
 }
 
 async function api(method, url, body, isForm) {
-  const headers = { Authorization: "Bearer " + $("token").value.trim(), "X-Correlation-ID": crypto.randomUUID() };
+  const headers = { "X-Correlation-ID": crypto.randomUUID() };
   if (body && !isForm) headers["Content-Type"] = "application/json";
   const res = await fetch(url, { method, headers, body: isForm ? body : body ? JSON.stringify(body) : undefined });
+  if (res.status === 401) { location.replace("login.html"); return { ok: false, status: 401, data: {} }; }
   const data = await res.json().catch(() => ({}));
   log(`${method} ${url}`, res.status, data);
   return { ok: res.ok, status: res.status, data };
@@ -107,7 +124,7 @@ async function api(method, url, body, isForm) {
 const order = () => $("order").value.trim();
 
 async function load() {
-  try { localStorage.setItem("pod.token", $("token").value); localStorage.setItem("pod.order", order()); } catch (e) {}
+  try { localStorage.setItem("pod.order", order()); } catch (e) {}
   const r = await api("GET", `${WS}/orders/${order()}/model_approvals`);
   if (!r.ok || !r.data.length) { $("approval-card").hidden = true; return; }
   render(r.data[0]);

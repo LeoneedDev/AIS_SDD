@@ -9,3 +9,4 @@ class Settings(BaseSettings):
     model_storage_dir: str = "var/model_files"
     upload_limit: int = 10
     upload_limit_period_days: int | None = None
+    cookie_secure: bool = False

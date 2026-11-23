@@ -68,6 +68,9 @@ class ContractClient:
     def post(self, url, token=None, **kw):
         return self.request("POST", url, token, **kw)
 
+    def delete(self, url, token=None, **kw):
+        return self.request("DELETE", url, token, **kw)
+
 
 class World:
     def __init__(self, api: ContractClient, db: Database):

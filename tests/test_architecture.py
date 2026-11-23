@@ -13,6 +13,7 @@ PACKAGES = {
     "model_repository": "AC-ModelRepository",
     "order_orchestrator": "AC-OrderOrchestrator",
     "notifier": "AC-Notifier",
+    "customer_portal": "AC-CustomerPortal",
 }
 
 # components.yaml neurčuje allowed_dependencies pre Model Repository; implementácia potrebuje

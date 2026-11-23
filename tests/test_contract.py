@@ -35,9 +35,16 @@ def test_implementation_matches_contract_operations():
     assert _implemented() == _contracted()
 
 
-def test_every_operation_requires_bearer_token():
+def test_security_matches_contract():
+    expected = {}
+    for doc in load_contracts():
+        prefix = doc["servers"][0]["url"]
+        for path, ops in doc["paths"].items():
+            for method, op in ops.items():
+                if method != "parameters":
+                    expected[(prefix, path, method)] = op.get("security", doc.get("security")) or []
     for prefix, (title, router) in SUB_APPS.items():
         spec = build_sub_app(title, router).openapi()
         for path, ops in spec["paths"].items():
             for method, op in ops.items():
-                assert op.get("security") == [{"bearer_auth": []}], f"{method.upper()} {prefix}{path}"
+                assert (op.get("security") or []) == expected[(prefix, path, method)], f"{method.upper()} {prefix}{path}"

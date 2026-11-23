@@ -19,6 +19,8 @@ class Database:
         self.sessions = sessionmaker(self.engine, expire_on_commit=False)
 
     def create_schema(self) -> None:
+        import pod.core.auth  # noqa: F401
+        import pod.customer_portal.models  # noqa: F401
         import pod.model_repository.models  # noqa: F401
         import pod.model_validator.models  # noqa: F401
         import pod.modeling_workspace.models  # noqa: F401

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PrintOnDemand – prihlásenie</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#1d2330; --muted:#667085; --line:#e3e6eb; --accent:#2f6fde; --bad:#c2410c; }
+  * { box-sizing:border-box; }
+  body { margin:0; min-height:100vh; display:grid; place-items:center; padding:24px 16px;
+         font:15px/1.5 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
+  .card { width:100%; max-width:380px; background:var(--card); border:1px solid var(--line); border-radius:12px; padding:28px 28px 24px; }
+  .brand { font-weight:700; font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--muted); font-size:14px; margin:0 0 24px; }
+  label { display:block; font-size:13px; color:var(--muted); margin:0 0 4px; }
+  input { width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:8px; font:inherit; margin-bottom:16px; }
+  input:focus { outline:2px solid #c7d7f8; border-color:var(--accent); }
+  button { width:100%; padding:10px 14px; border-radius:8px; border:0; background:var(--accent); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+  button:disabled { opacity:.6; cursor:default; }
+  .error { color:var(--bad); background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:8px 12px; font-size:14px; margin-bottom:16px; }
+  .hint { color:var(--muted); font-size:12px; margin-top:16px; text-align:center; }
+</style>
+</head>
+<body>
+<form class="card" id="form" novalidate>
+  <p class="brand">PrintOnDemand</p>
+  <p class="sub">Prihláste sa do svojho účtu</p>
+  <div class="error" id="error" hidden></div>
+  <label for="login">Login</label>
+  <input id="login" name="login" autocomplete="username" required autofocus>
+  <label for="password">Heslo</label>
+  <input id="password" name="password" type="password" autocomplete="current-password" required>
+  <button type="submit" id="submit">Prihlásiť sa</button>
+  <p class="hint">Relácia platí 8 hodín.</p>
+</form>
+<script>
+const form = document.getElementById("form"), error = document.getElementById("error"), submit = document.getElementById("submit");
+fetch("/api/customer_portal/sessions/current").then((r) => { if (r.ok) location.replace("index.html"); });
+form.onsubmit = async (e) => {
+  e.preventDefault();
+  error.hidden = true;
+  submit.disabled = true;
+  try {
+    const res = await fetch("/api/customer_portal/sessions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ login: form.login.value.trim(), password: form.password.value }),
+    });
+    if (res.ok) { location.replace("index.html"); return; }
+    const p = await res.json().catch(() => ({}));
+    error.textContent = p.detail || "Prihlásenie sa nepodarilo.";
+    error.hidden = false;
+  } finally {
+    submit.disabled = false;
+  }
+};
+</script>
+</body>
+</html>
