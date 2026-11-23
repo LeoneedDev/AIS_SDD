@@ -1,7 +1,7 @@
 openapi: "3.1.0"
 info:
   title: "Model Approval API"
-  version: "0.2.0"
+  version: "0.3.0"
   description: >
     Schvaľovanie 3D modelu zákazníkom pred tlačou (R-001): stav schválenia,
     revízie a rozhodnutia zákazníka. Všetko patrí k jednej objednávke
@@ -9,6 +9,7 @@ info:
   x-sdd:
     status: "approved"
     approved_by: "Leonid"
+    change_from: "0.2.0 – pridaný alternatívny cookie_auth (QR-002); nič iné sa nemení"
     mode: "DESIGN_CONTRACT"
     requirement: "R-001"
     specification_baseline: "0.1.0"
@@ -25,6 +26,7 @@ servers:
 
 security:
   - bearer_auth: []
+  - cookie_auth: []
 
 tags:
   - name: "model_approvals"
@@ -354,6 +356,11 @@ components:
       description: >
         Token z prihlásenia (login a heslo, voliteľne 2FA); frontend ho posiela
         s každou požiadavkou (contract-design-profile).
+    cookie_auth:
+      type: "apiKey"
+      in: "cookie"
+      name: "pod_session"
+      description: "Relácia z prihlásenia v portáli (QR-002, auth-api)."
 
   parameters:
     correlation_id:

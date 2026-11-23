@@ -1,0 +1,157 @@
+openapi: "3.1.0"
+info:
+  title: "Authentication API"
+  version: "0.1.0"
+  description: >
+    Prihlásenie a odhlásenie zákazníkov a zamestnancov (QR-002). Relácia sa
+    ukladá v HttpOnly cookie. Poskytuje AC-CustomerPortal.
+  x-sdd:
+    status: "approved"
+    approved_by: "Leonid"
+    mode: "DESIGN_CONTRACT"
+    requirement: "R-001"
+    quality_requirements: ["QR-001", "QR-002"]
+    specification_baseline: "0.1.0"
+    provider_component: "AC-CustomerPortal"
+    application_service: "AS-Authentication"
+    policy: "spec/policies/contract-design-profile.yaml (zmena security – pozri spec/drafts/contract-design-profile-change.md)"
+    cookie: >
+      Názov pod_session; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800 (8 h);
+      Secure pri nasadení cez HTTPS. SameSite=Strict chráni pred CSRF.
+    not_in_scope: "2FA, obmedzenie nesprávnych pokusov, registrácia účtu (QR-002)."
+
+servers:
+  - url: "/api/customer_portal"
+
+paths:
+  /sessions:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+    post:
+      operationId: "create_session"
+      summary: "Prihlásiť sa loginom a heslom"
+      description: >
+        Pri úspechu nastaví cookie pod_session (Set-Cookie) a vráti údaje
+        prihláseného používateľa. Pri nesprávnom logine alebo hesle vráti jednu
+        všeobecnú chybu 401 bez rozlíšenia, ktorý údaj bol zlý.
+      security: []
+      x-sdd:
+        allowed_roles: ["anonymous"]
+        roles_source: "QR-002"
+        rules: ["QR-001", "QR-002"]
+        data_objects: ["DO-UserAccount"]
+        scenarios: ["SC-002-01", "SC-002-02", "SC-002-05"]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/login_input"
+      responses:
+        "201":
+          description: "Prihlásený; odpoveď nastaví cookie pod_session."
+          headers:
+            Set-Cookie:
+              description: "pod_session=<token>; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800"
+              schema: { type: "string" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/session"
+        "400": { $ref: "#/components/responses/bad_request" }
+        "401":
+          description: "Nesprávny login alebo heslo (problem type urn:problem:invalid_credentials)."
+          content:
+            application/problem+json:
+              schema: { $ref: "#/components/schemas/problem" }
+
+  /sessions/current:
+    parameters:
+      - $ref: "#/components/parameters/correlation_id"
+    get:
+      operationId: "get_current_session"
+      summary: "Kto je prihlásený"
+      x-sdd:
+        allowed_roles: ["customer", "modeler", "manager"]
+        roles_source: "QR-002"
+        rules: ["QR-002"]
+        data_objects: ["DO-UserAccount"]
+        scenarios: ["SC-002-01", "SC-002-03", "SC-002-04", "SC-002-05"]
+      responses:
+        "200":
+          description: "Aktuálna relácia."
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/session" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+    delete:
+      operationId: "delete_current_session"
+      summary: "Odhlásiť sa"
+      description: "Ukončí reláciu a zmaže cookie pod_session (Max-Age=0)."
+      x-sdd:
+        allowed_roles: ["customer", "modeler", "manager"]
+        roles_source: "QR-002"
+        rules: ["QR-002"]
+        data_objects: ["DO-UserAccount"]
+        scenarios: ["SC-002-03"]
+      responses:
+        "204":
+          description: "Odhlásený; cookie zmazaná."
+        "401": { $ref: "#/components/responses/unauthorized" }
+
+security:
+  - cookie_auth: []
+
+components:
+  securitySchemes:
+    cookie_auth:
+      type: "apiKey"
+      in: "cookie"
+      name: "pod_session"
+
+  parameters:
+    correlation_id:
+      name: "X-Correlation-ID"
+      in: "header"
+      required: false
+      schema: { type: "string" }
+
+  responses:
+    bad_request:
+      description: "Neplatný vstup."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+    unauthorized:
+      description: "Nie je platná relácia (neprihlásený, odhlásený alebo vypršaná)."
+      content:
+        application/problem+json:
+          schema: { $ref: "#/components/schemas/problem" }
+
+  schemas:
+    problem:
+      type: "object"
+      description: "RFC 9457 problem details."
+      properties:
+        type: { type: "string", format: "uri-reference" }
+        title: { type: "string" }
+        status: { type: "integer" }
+        detail: { type: "string" }
+        instance: { type: "string" }
+      required: ["type", "title", "status"]
+
+    login_input:
+      type: "object"
+      properties:
+        login: { type: "string", minLength: 1, maxLength: 64 }
+        password: { type: "string", minLength: 1, maxLength: 256 }
+      required: ["login", "password"]
+
+    session:
+      type: "object"
+      properties:
+        account_id: { type: "string" }
+        role: { type: "string", enum: ["customer", "modeler", "manager"] }
+        nickname: { type: ["string", "null"], description: "Iba pri zamestnancovi (QR-001)." }
+        expires_at: { type: "string", format: "date-time" }
+      required: ["account_id", "role", "expires_at"]

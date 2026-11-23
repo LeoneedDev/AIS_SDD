@@ -39,8 +39,9 @@ application_components:
     name: "Customer portal"
     responsibility: >
       Poskytuje zákazníkom používateľské rozhranie na prácu s naším systémom.
-    provides_services: ["AS-InformingCustomer", "AS-CreatingRequest"]
-    owns_data_objects: ["DO-PromptOrder", "DO-ModelOrder"]
+      Zabezpečuje aj prihlásenie zákazníkov a zamestnancov (QR-002).
+    provides_services: ["AS-InformingCustomer", "AS-CreatingRequest", "AS-Authentication"]
+    owns_data_objects: ["DO-PromptOrder", "DO-ModelOrder", "DO-UserAccount"]
 
   - id: "AC-OrderOrchestrator"
     name: "Order Orchestrator"

@@ -52,3 +52,16 @@ Súhlas zákazníka s konkrétnou revíziou modelu; v systéme ho reprezentuje a
 
 - z modelu: Contract „General terms (2 free model revisions, 14-day complaint)“ (EA #823)
 - IDs: R-001
+
+## Account (účet)
+
+Prístup zákazníka alebo zamestnanca do systému: login a heslo, rola a pri zamestnancovi prezývka.
+
+- IDs: DO-UserAccount, QR-001, QR-002
+- z modelu: — (nový prvok, v EA zatiaľ nie je)
+
+## Session (relácia)
+
+Doba po prihlásení, počas ktorej sa používateľ nemusí znova prihlasovať; platí 8 hodín alebo do odhlásenia.
+
+- IDs: QR-002

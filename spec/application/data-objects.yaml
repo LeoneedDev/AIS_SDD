@@ -71,3 +71,13 @@ data_objects:
     related_data_objects: ["DO-Order"]
     owner_component: "AC-Notifier"
     sensitive_data: true
+
+  - id: "DO-UserAccount"
+    name: "User account"
+    meaning: >
+      Účet zákazníka alebo zamestnanca: login, hash hesla, rola (zákazník, 3D
+      modelár, manažér) a pri zamestnancovi prezývka (QR-001). Bez e-mailu a
+      telefónu (sú voliteľné a patria k iným údajom).
+    owner_component: "AC-CustomerPortal"
+    sensitive_data: true
+    note: "Nový prvok (QR-002); v modeli EA zatiaľ nie je."

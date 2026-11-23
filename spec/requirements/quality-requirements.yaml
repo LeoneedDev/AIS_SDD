@@ -13,3 +13,19 @@ quality_requirements:
     owner: "SH-ManagementCEO"
     status: "approved"
     requirements: ["R-001"]
+
+  - id: "QR-002"
+    category: "security (prihlásenie)"
+    statement: >
+      Zákazník aj zamestnanec sa prihlási loginom a heslom na stránke portálu.
+      Po prihlásení dostane prehliadač reláciu v HttpOnly cookie (JavaScript ju
+      nevidí); relácia platí 8 hodín a používateľ ju môže kedykoľvek ukončiť
+      odhlásením. Heslo sa ukladá iba ako hash. Dvojfaktorové overenie (QR-001)
+      a obmedzenie opakovaných nesprávnych pokusov sa riešia neskôr samostatnou
+      zmenou. Účty sa zatiaľ nezakladajú registráciou, ale vopred.
+    measure: >
+      Po prihlásení portál funguje bez ručného zadávania tokenu; po odhlásení
+      alebo po 8 hodinách API odpovie 401.
+    owner: "SH-ManagementCEO"
+    status: "approved"
+    requirements: ["R-001"]
